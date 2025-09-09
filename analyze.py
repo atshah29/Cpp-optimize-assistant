@@ -26,7 +26,7 @@ def analyze_cpp_file(filepath, with_ai=False):
     )
 
     print(f"Analyzing {filepath}...\n")
-    recursiveSearch(tu.cursor)
+    recursiveSearch(tu.cursor, filepath)
 
     # Diagnostics
     severity_map = {0: "Ignored", 1: "Note", 2: "Warning", 3: "Error", 4: "Fatal"}
@@ -49,16 +49,17 @@ def analyze_cpp_file(filepath, with_ai=False):
     return results
 
 
-def recursiveSearch(node):
+def recursiveSearch(node, filepath):
     for child in node.get_children():
         if child.kind == cindex.CursorKind.INCLUSION_DIRECTIVE:
             headers.add(child.spelling)
         elif child.kind == cindex.CursorKind.FUNCTION_DECL:
-            with open(child.location.file.name) as f:
-                lines = f.readlines()
-                code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
-                functions[child.spelling] = code.strip()
-        recursiveSearch(child)
+            if child.location.file and child.location.file.name == filepath:
+                with open(child.location.file.name) as f:
+                    lines = f.readlines()
+                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
+                    functions[child.spelling] = code.strip()
+        recursiveSearch(child, filepath)
 
 
 if __name__ == "__main__":

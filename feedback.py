@@ -15,11 +15,19 @@ client = Groq(api_key=api_key)
 
 def get_ai_feedback(code_snippet: str) -> str:
     """Send a function snippet to Groq for optimization feedback."""
+    print(code_snippet)
+
     response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",   # change if needed
+        model="deepseek-r1-distill-llama-70b",  # use the supported model
         messages=[
-            {"role": "system", "content": "You are a C++ performance optimization assistant. Focus on runtime efficiency, memory usage, and best practices."},
+            {"role": "system", "content": "You are a C++ performance optimization assistant. Focus on runtime efficiency, memory usage, and best practices. Provide clear, actionable suggestions in 2-3 bullet points."},
             {"role": "user", "content": f"Analyze this C++ function and suggest optimizations:\n\n{code_snippet}"}
-        ]
+        ],
+        temperature=0.6,
+        max_completion_tokens=1024,  # adjust as needed
+        top_p=0.95,
+        stream=False,  # can flip to True if you want tokens streaming in
     )
+    print(response)
     return response.choices[0].message.content.strip()
+
