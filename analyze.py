@@ -67,24 +67,37 @@ def recursiveSearch(node, filepath):
             if child.location.file and child.location.file.name == filepath:
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
-                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
+                    code = "".join(
+                        lines[child.extent.start.line - 1 : child.extent.end.line]
+                    )
                     functions[child.spelling] = code.strip()
+
+        elif child.kind in (
+            cindex.CursorKind.CLASS_DECL,
+            cindex.CursorKind.STRUCT_DECL,
+            cindex.CursorKind.CLASS_TEMPLATE,
+        ):
+            if child.location.file and child.location.file.name == filepath:
+                name = child.spelling if child.spelling else "<anonymous>"
+                with open(child.location.file.name) as f:
+                    lines = f.readlines()
+                    code = "".join(
+                        lines[child.extent.start.line - 1 : child.extent.end.line]
+                    )
+                    classes[name] = code.strip()
 
         elif child.kind == cindex.CursorKind.ENUM_DECL:
             if child.location.file and child.location.file.name == filepath:
+                name = child.spelling if child.spelling else "<anonymous_enum>"
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
-                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
-                    enums[child.spelling] = code.strip()
-
-        elif child.kind == cindex.CursorKind.CLASS_DECL:
-            if child.location.file and child.location.file.name == filepath:
-                with open(child.location.file.name) as f:
-                    lines = f.readlines()
-                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
-                    classes[child.spelling] = code.strip()
+                    code = "".join(
+                        lines[child.extent.start.line - 1 : child.extent.end.line]
+                    )
+                    enums[name] = code.strip()
 
         recursiveSearch(child, filepath)
+
 
 
 if __name__ == "__main__":
