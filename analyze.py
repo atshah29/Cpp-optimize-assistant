@@ -2,6 +2,7 @@ import sys
 import json
 from clang import cindex
 from feedback import get_ai_feedback  # Import from feedback.py
+from clang.cindex import TranslationUnit
 
 # Point Python to libclang
 cindex.Config.set_library_file("/opt/homebrew/opt/llvm/lib/libclang.dylib")
@@ -12,7 +13,6 @@ diagnostics = []
 
 def analyze_cpp_file(filepath, with_ai=False):
     index = cindex.Index.create()
-    from clang.cindex import TranslationUnit
 
     tu = index.parse(
         filepath,

@@ -28,6 +28,5 @@ def get_ai_feedback(code_snippet: str) -> str:
         top_p=0.95,
         stream=False,  # can flip to True if you want tokens streaming in
     )
-    print(response)
     return response.choices[0].message.content.strip()
 
