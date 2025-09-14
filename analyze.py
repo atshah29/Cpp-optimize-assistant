@@ -31,6 +31,8 @@ def analyze_cpp_file(filepath, with_ai=False):
     # Diagnostics
     severity_map = {0: "Ignored", 1: "Note", 2: "Warning", 3: "Error", 4: "Fatal"}
     for element in tu.diagnostics:
+        if element.location.file and element.location.file.name!=filepath: #Only concerned with diagnostics related to filepath.
+            continue 
         diagnostics.append(f"{severity_map[element.severity]}: {element.spelling} at {element.location}")
 
     results = {
@@ -71,6 +73,5 @@ if __name__ == "__main__":
     use_ai = "--ai" in sys.argv
 
     results = analyze_cpp_file(filepath, with_ai=use_ai)
-
+    print(results["ai_feedback"]) if use_ai else print(json.dumps(results, indent=2))
     # Pretty print final results (including AI feedback if requested)
-    print(json.dumps(results, indent=2))
