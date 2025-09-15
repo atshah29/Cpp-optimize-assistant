@@ -1,6 +1,7 @@
 from groq import Groq
 import os
 from dotenv import load_dotenv
+import json
 
 # Load .env file variables into environment
 load_dotenv()
@@ -13,20 +14,44 @@ if not api_key:
 
 client = Groq(api_key=api_key)
 
-def get_ai_feedback(code_snippet: str) -> str:
+def get_ai_feedback(results):
     """Send a function snippet to Groq for optimization feedback."""
-    print(code_snippet)
 
     response = client.chat.completions.create(
-        model="deepseek-r1-distill-llama-70b",  # use the supported model
-        messages=[
-            {"role": "system", "content": "You are a C++ performance optimization assistant. Focus on runtime efficiency, memory usage, and best practices. Provide clear, actionable suggestions in 2-3 bullet points."},
-            {"role": "user", "content": f"Analyze this C++ function and suggest optimizations:\n\n{code_snippet}"}
+        model="llama-3.3-70b-versatile",  # use the supported model
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a C++ performance optimization assistant. "
+                    "Focus on runtime efficiency, memory usage, and best practices."
+                )
+            },
+            {
+                "role": "system",
+                "content": (
+                    "Output only valid JSON with the following fields: "
+                    "headers (list of header names), "
+                    "classes (object of class definitions and methods), "
+                    "functions (object of function definitions), "
+                    "diagnostics (list of warnings or notes), "
+                    "enums (object of enum definitions). "
+                    "If a section is empty, use {} or []. "
+                    "Do not include explanations, comments, or markdown fences."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Analyze this C++ code and suggest optimizations:\n\n{results}"
+            }
         ],
-        temperature=0.6,
-        max_completion_tokens=1024,  # adjust as needed
-        top_p=0.95,
-        stream=False,  # can flip to True if you want tokens streaming in
+        temperature=1,
+        max_completion_tokens=8192,
+        top_p=1,
+        #reasoning_effort="high",
+        stream=False,
+        response_format={"type": "json_object"},
+        stop=None
     )
-    return response.choices[0].message.content.strip()
+    return json.loads(response.choices[0].message.content.strip())
 

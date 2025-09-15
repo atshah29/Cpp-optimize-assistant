@@ -51,19 +51,20 @@ def analyze_cpp_file(filepath, with_ai=False):
     # Optionally add AI feedback
     if with_ai and functions:
         results["ai_feedback"] = {
-            fname: get_ai_feedback(code)
-            for fname, code in functions.items()
+            filepath: get_ai_feedback(results)
         }
 
     return results
 
 
-def recursiveSearch(node, filepath):
+def recursiveSearch(node, filepath, current_class=None):
     for child in node.get_children():
-        if child.kind == cindex.CursorKind.INCLUSION_DIRECTIVE:
+        # Header includes
+        if child.kind == cindex.CursorKind.INCLUSION_DIRECTIVE and child.location.file and child.location.file.name==filepath:
             headers.add(child.spelling)
 
-        elif child.kind == cindex.CursorKind.FUNCTION_DECL:
+        # Free functions (outside of classes)
+        elif child.kind == cindex.CursorKind.FUNCTION_DECL and current_class is None:
             if child.location.file and child.location.file.name == filepath:
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
@@ -72,6 +73,7 @@ def recursiveSearch(node, filepath):
                     )
                     functions[child.spelling] = code.strip()
 
+        # Class / struct / class template
         elif child.kind in (
             cindex.CursorKind.CLASS_DECL,
             cindex.CursorKind.STRUCT_DECL,
@@ -84,8 +86,34 @@ def recursiveSearch(node, filepath):
                     code = "".join(
                         lines[child.extent.start.line - 1 : child.extent.end.line]
                     )
-                    classes[name] = code.strip()
 
+                # Initialize structure for this class
+                classes[name] = {"definition": code.strip(), "methods": {}}
+
+                # Recurse with class context
+                recursiveSearch(child, filepath, current_class=name)
+                continue  # already handled recursion
+
+        # Methods inside a class
+        elif child.kind in (
+            cindex.CursorKind.CXX_METHOD,
+            cindex.CursorKind.CONSTRUCTOR,
+            cindex.CursorKind.DESTRUCTOR,
+            cindex.CursorKind.FUNCTION_TEMPLATE,
+        ):
+            if (
+                current_class
+                and child.location.file
+                and child.location.file.name == filepath
+            ):
+                with open(child.location.file.name) as f:
+                    lines = f.readlines()
+                    code = "".join(
+                        lines[child.extent.start.line - 1 : child.extent.end.line]
+                    )
+                    classes[current_class]["methods"][child.spelling] = code.strip()
+
+        # Enums
         elif child.kind == cindex.CursorKind.ENUM_DECL:
             if child.location.file and child.location.file.name == filepath:
                 name = child.spelling if child.spelling else "<anonymous_enum>"
@@ -96,7 +124,53 @@ def recursiveSearch(node, filepath):
                     )
                     enums[name] = code.strip()
 
-        recursiveSearch(child, filepath)
+        # Recurse normally
+        recursiveSearch(child, filepath, current_class)
+
+def json_to_cpp(data: dict, filename: str = "optimized.cpp"):
+    parts = []
+
+    # 0. Diagnostics as comments
+    diagnostics = data.get("diagnostics", [])
+    if diagnostics:
+        parts.append("// === Diagnostics ===")
+        for diagnostic in diagnostics:
+            parts.append(f"// {diagnostic}")
+        parts.append("")  # spacing after diagnostics
+
+    # 1. Headers
+    for header in data.get("headers", []):
+        parts.append(f"#include <{header}>")
+
+    parts.append("")  # spacing
+
+    # 2. Classes
+    for _, cls in data.get("classes", {}).items():
+        definition = cls.get("definition")
+        if definition:
+            parts.append(definition)
+            parts.append("")
+
+    # 3. Functions (excluding main)
+    functions = data.get("functions", {})
+    for name, func in functions.items():
+        if name != "main" and func:
+            parts.append(func)
+            parts.append("")
+
+    # 4. Main
+    main_func = functions.get("main") or data.get("main")
+    if main_func:
+        parts.append(main_func)
+        parts.append("")
+
+    # Join and write
+    code = "\n".join(parts).strip() + "\n"
+    with open(filename, "w") as f:
+        f.write(code)
+
+    return filename
+
 
 
 
@@ -113,6 +187,8 @@ if __name__ == "__main__":
     if use_ai:
         if "ai_feedback" in results:
             print(json.dumps(results["ai_feedback"], indent=2))
+            cpp_file = json_to_cpp(results["ai_feedback"]["test.cpp"])
+            print(f"Generated C++ file: {cpp_file}")
         else:
             print("No functions found for AI feedback.")
     else:
