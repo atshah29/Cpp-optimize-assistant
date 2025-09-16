@@ -1,7 +1,8 @@
 from groq import Groq
 import os, json
 from dotenv import load_dotenv
-from utils import json_to_cpp, compile_and_run
+from utils import json_to_cpp, compile_and_run_project
+
 
 
 # Load .env file variables into environment
@@ -13,12 +14,6 @@ api_key = os.getenv("GROQ_API_KEY")
 if not api_key:
     raise ValueError("❌ Missing GROQ_API_KEY. Make sure it's set in your .env or shell environment.")
 
-client = Groq(api_key=api_key)
-
-from groq import Groq
-import os, json
-from dotenv import load_dotenv
-from utils import json_to_cpp, compile_and_run
 
 # Load .env file variables into environment
 load_dotenv()
@@ -86,7 +81,7 @@ def reinforcement_loop(filepath, original_json, baseline_time, iterations=3):
 
         # Write + test
         cpp_file = json_to_cpp(new_json, f"iter_{i+1}.cpp")
-        runtime = compile_and_run(cpp_file)
+        runtime = compile_and_run_project([cpp_file])
         if os.path.exists(cpp_file):
             os.remove(cpp_file)
         if runtime is not None and runtime < best_time:

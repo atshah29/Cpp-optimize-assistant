@@ -1,24 +1,24 @@
 import os, subprocess, time
 
-def compile_and_run(filepath: str):
-    binary = filepath.replace(".cpp", "")
+def compile_and_run_project(filepaths, output_binary="project_bin"):
     try:
-        subprocess.run(["g++", "-O2", "-std=c++17", filepath, "-o", binary], check=True, capture_output=True)
+        subprocess.run(["g++", "-O2", "-std=c++17", *filepaths, "-o", output_binary], check=True, capture_output=True)
         start = time.time()
-        subprocess.run([f"./{binary}"], check=True, capture_output=True)
+        subprocess.run([f"./{output_binary}"], check=True, capture_output=True)
         end = time.time()
         return end - start
     except subprocess.CalledProcessError as e:
         print("Compilation/Run failed:", e.stderr.decode())
         return None
     finally:
-        if os.path.exists(binary):
-            os.remove(binary)
+        if os.path.exists(output_binary):
+            os.remove(output_binary)
+
 
 def json_to_cpp(data: dict, filename: str = "optimized.cpp"):
     parts = []
     for header in data.get("headers", []):
-        parts.append(f"#include <{header}>")
+        parts.append(f'#include "{header}"')
     parts.append("")
     for diagnostic in data.get("diagnostics", []):
         parts.append(f"//{diagnostic}")
