@@ -1,24 +1,30 @@
 import sys
 import json
+import os
 from clang import cindex
-from feedback import get_ai_feedback  # Import from feedback.py
 from clang.cindex import TranslationUnit
+from feedback import reinforcement_loop
+from utils import compile_and_run, json_to_cpp
 
 # Point Python to libclang
 cindex.Config.set_library_file("/opt/homebrew/opt/llvm/lib/libclang.dylib")
 
+# Global containers
 headers = set()
 functions = {}
 diagnostics = []
 classes = {}
 enums = {}
 
+
 def analyze_cpp_file(filepath, with_ai=False):
     global headers, functions, diagnostics, classes, enums
     headers, functions, diagnostics, classes, enums = set(), {}, [], {}, {}
 
-    index = cindex.Index.create()
+    baseline = compile_and_run(filepath)
+    print(f"Baseline runtime: {baseline:.6f}s")
 
+    index = cindex.Index.create()
     tu = index.parse(
         filepath,
         args=[
@@ -33,10 +39,10 @@ def analyze_cpp_file(filepath, with_ai=False):
     print(f"Analyzing {filepath}...\n")
     recursiveSearch(tu.cursor, filepath)
 
-    # Diagnostics
+    # Collect diagnostics
     severity_map = {0: "Ignored", 1: "Note", 2: "Warning", 3: "Error", 4: "Fatal"}
     for element in tu.diagnostics:
-        if element.location.file and element.location.file.name != filepath:  
+        if element.location.file and element.location.file.name != filepath:
             continue
         diagnostics.append(f"{severity_map[element.severity]}: {element.spelling} at {element.location}")
 
@@ -48,132 +54,63 @@ def analyze_cpp_file(filepath, with_ai=False):
         "enums": enums
     }
 
-    # Optionally add AI feedback
+    # Optionally run AI feedback loop
     if with_ai and functions:
-        results["ai_feedback"] = {
-            filepath: get_ai_feedback(results)
-        }
+        best_json, best_time = reinforcement_loop(filepath, results, baseline, iterations=3)
+        return results, best_json, best_time
 
-    return results
+    return results, None, None
 
 
 def recursiveSearch(node, filepath, current_class=None):
     for child in node.get_children():
         # Header includes
-        if child.kind == cindex.CursorKind.INCLUSION_DIRECTIVE and child.location.file and child.location.file.name==filepath:
+        if child.kind == cindex.CursorKind.INCLUSION_DIRECTIVE and child.location.file and child.location.file.name == filepath:
             headers.add(child.spelling)
 
-        # Free functions (outside of classes)
+        # Free functions
         elif child.kind == cindex.CursorKind.FUNCTION_DECL and current_class is None:
             if child.location.file and child.location.file.name == filepath:
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
-                    code = "".join(
-                        lines[child.extent.start.line - 1 : child.extent.end.line]
-                    )
+                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
                     functions[child.spelling] = code.strip()
 
-        # Class / struct / class template
-        elif child.kind in (
-            cindex.CursorKind.CLASS_DECL,
-            cindex.CursorKind.STRUCT_DECL,
-            cindex.CursorKind.CLASS_TEMPLATE,
-        ):
+        # Classes / structs / templates
+        elif child.kind in (cindex.CursorKind.CLASS_DECL, cindex.CursorKind.STRUCT_DECL, cindex.CursorKind.CLASS_TEMPLATE):
             if child.location.file and child.location.file.name == filepath:
-                name = child.spelling if child.spelling else "<anonymous>"
+                name = child.spelling or "<anonymous>"
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
-                    code = "".join(
-                        lines[child.extent.start.line - 1 : child.extent.end.line]
-                    )
-
-                # Initialize structure for this class
+                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
                 classes[name] = {"definition": code.strip(), "methods": {}}
-
-                # Recurse with class context
                 recursiveSearch(child, filepath, current_class=name)
-                continue  # already handled recursion
+                continue
 
         # Methods inside a class
-        elif child.kind in (
-            cindex.CursorKind.CXX_METHOD,
-            cindex.CursorKind.CONSTRUCTOR,
-            cindex.CursorKind.DESTRUCTOR,
-            cindex.CursorKind.FUNCTION_TEMPLATE,
-        ):
-            if (
-                current_class
-                and child.location.file
-                and child.location.file.name == filepath
-            ):
+        elif child.kind in (cindex.CursorKind.CXX_METHOD, cindex.CursorKind.CONSTRUCTOR, cindex.CursorKind.DESTRUCTOR, cindex.CursorKind.FUNCTION_TEMPLATE):
+            if current_class and child.location.file and child.location.file.name == filepath:
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
-                    code = "".join(
-                        lines[child.extent.start.line - 1 : child.extent.end.line]
-                    )
+                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
                     classes[current_class]["methods"][child.spelling] = code.strip()
 
         # Enums
         elif child.kind == cindex.CursorKind.ENUM_DECL:
             if child.location.file and child.location.file.name == filepath:
-                name = child.spelling if child.spelling else "<anonymous_enum>"
+                name = child.spelling or "<anonymous_enum>"
                 with open(child.location.file.name) as f:
                     lines = f.readlines()
-                    code = "".join(
-                        lines[child.extent.start.line - 1 : child.extent.end.line]
-                    )
+                    code = "".join(lines[child.extent.start.line - 1 : child.extent.end.line])
                     enums[name] = code.strip()
 
-        # Recurse normally
+        # Recurse
         recursiveSearch(child, filepath, current_class)
 
-def json_to_cpp(data: dict, filename: str = "optimized.cpp"):
-    parts = []
 
-    # 0. Diagnostics as comments
-    diagnostics = data.get("diagnostics", [])
-    if diagnostics:
-        parts.append("// === Diagnostics ===")
-        for diagnostic in diagnostics:
-            parts.append(f"// {diagnostic}")
-        parts.append("")  # spacing after diagnostics
-
-    # 1. Headers
-    for header in data.get("headers", []):
-        parts.append(f"#include <{header}>")
-
-    parts.append("")  # spacing
-
-    # 2. Classes
-    for _, cls in data.get("classes", {}).items():
-        definition = cls.get("definition")
-        if definition:
-            parts.append(definition)
-            parts.append("")
-
-    # 3. Functions (excluding main)
-    functions = data.get("functions", {})
-    for name, func in functions.items():
-        if name != "main" and func:
-            parts.append(func)
-            parts.append("")
-
-    # 4. Main
-    main_func = functions.get("main") or data.get("main")
-    if main_func:
-        parts.append(main_func)
-        parts.append("")
-
-    # Join and write
-    code = "\n".join(parts).strip() + "\n"
-    with open(filename, "w") as f:
-        f.write(code)
-
-    return filename
-
-
-
-
+# =========================
+# CLI
+# =========================
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python analyze.py file.cpp [--ai]")
@@ -182,14 +119,13 @@ if __name__ == "__main__":
     filepath = sys.argv[1]
     use_ai = "--ai" in sys.argv
 
-    results = analyze_cpp_file(filepath, with_ai=use_ai)
+    results, best_json, best_time = analyze_cpp_file(filepath, with_ai=use_ai)
 
-    if use_ai:
-        if "ai_feedback" in results:
-            print(json.dumps(results["ai_feedback"], indent=2))
-            cpp_file = json_to_cpp(results["ai_feedback"]["test.cpp"])
-            print(f"Generated C++ file: {cpp_file}")
-        else:
-            print("No functions found for AI feedback.")
+    if use_ai and best_json:
+        # Only print AI output JSON; avoids circular reference
+        print(json.dumps(best_json, indent=2, ensure_ascii=False))
+        cpp_file = json_to_cpp(best_json)
+        print(f"Generated best optimized C++ file: {cpp_file}")
+        print(f"Best runtime: {best_time:.6f}s")
     else:
         print(json.dumps(results, indent=2))
