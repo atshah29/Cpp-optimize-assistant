@@ -1,24 +1,27 @@
 import os, subprocess, time
 
-def compile_and_run_project(filepaths, output_binary="project_bin"):
-    try:
-        subprocess.run(["g++", "-O2", "-std=c++17", *filepaths, "-o", output_binary], check=True, capture_output=True)
-        start = time.time()
-        subprocess.run([f"./{output_binary}"], check=True, capture_output=True)
-        end = time.time()
-        return end - start
-    except subprocess.CalledProcessError as e:
-        print("Compilation/Run failed:", e.stderr.decode())
+def compile_and_run_project(filepaths):
+    cpp_files = [fp for fp in filepaths if fp.endswith(".cpp")]
+    if not cpp_files:
         return None
-    finally:
-        if os.path.exists(output_binary):
-            os.remove(output_binary)
+
+    exe_path = "a.out"
+    try:
+        subprocess.run(["clang++", "-std=c++17", *cpp_files, "-o", exe_path], check=True)
+        start = time.time()
+        subprocess.run([f"./{exe_path}"], check=True, stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT)
+        return time.time() - start
+    except subprocess.CalledProcessError:
+        print("Compilation/Run failed")
+        return None
+
 
 
 def json_to_cpp(data: dict, filename: str = "optimized.cpp"):
     parts = []
     for header in data.get("headers", []):
-        parts.append(f'#include "{header}"')
+        parts.append(f'#include "{header}"')    
     parts.append("")
     for diagnostic in data.get("diagnostics", []):
         parts.append(f"//{diagnostic}")

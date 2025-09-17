@@ -10,13 +10,15 @@ from utils import compile_and_run_project, json_to_cpp
 # Point Python to libclang
 cindex.Config.set_library_file("/opt/homebrew/opt/llvm/lib/libclang.dylib")
 
-def analyze_cpp_file(filepath):
+def analyze_cpp_file(filepath, clang_args = None):
     headers, functions, diagnostics, classes, enums = set(), {}, [], {}, {}
+
+
 
     index = cindex.Index.create()
     tu = index.parse(
         filepath,
-        args=[
+        args=clang_args if clang_args else[
             "-std=c++17",
             "-I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1",
             "-I/Library/Developer/CommandLineTools/usr/include/c++/v1",
@@ -86,7 +88,7 @@ def recursiveSearch(node, filepath, headers, functions, classes, enums, current_
 
         recursiveSearch(child, filepath, headers, functions, classes, enums, current_class)
 
-def analyze_cpp_project(filepaths, with_ai=False):
+def analyze_cpp_project(filepaths, with_ai=False, clang_args = None):
     project_results = {
         "headers": set(),
         "functions": {},
@@ -97,7 +99,9 @@ def analyze_cpp_project(filepaths, with_ai=False):
 
     # Analyze each file
     for fp in filepaths:
-        results = analyze_cpp_file(fp)
+        if not fp.endswith(".cpp"):
+            continue   # <---- skip headers here
+        results = analyze_cpp_file(fp, clang_args)
         project_results["headers"].update(results["headers"])
         project_results["functions"].update(results["functions"])
         project_results["classes"].update(results["classes"])
@@ -112,7 +116,7 @@ def analyze_cpp_project(filepaths, with_ai=False):
     project_results["headers"] = sorted(project_results["headers"])
 
     if with_ai and project_results["functions"]:
-        best_json, best_time = reinforcement_loop(filepaths, project_results, baseline, iterations=3)
+        best_json, best_time = reinforcement_loop("project", project_results, baseline, iterations=3)
         project_results["ai_feedback"] = {"best_json": best_json, "best_time": best_time}
 
     return project_results
@@ -127,7 +131,7 @@ if __name__ == "__main__":
     use_ai = "--ai" in args
     filepaths = [a for a in args if a.endswith(".cpp")]
 
-    results = analyze_cpp_project(filepaths, with_ai=use_ai)
+    results = analyze_cpp_project(filepaths, with_ai=use_ai, clang_args = None)
 
     if use_ai and "ai_feedback" in results:
         final_json = results["ai_feedback"]["best_json"]

@@ -23,7 +23,7 @@ if not api_key:
 
 client = Groq(api_key=api_key)
 
-def reinforcement_loop(filepath, original_json, baseline_time, iterations=3):
+def reinforcement_loop(label, original_json, baseline_time, iterations=3):
     """Iteratively optimize code via Groq with runtime feedback loop."""
     print(f"Baseline runtime: {baseline_time:.6f}s")
 
@@ -56,7 +56,7 @@ def reinforcement_loop(filepath, original_json, baseline_time, iterations=3):
                     "content": (
                         "Output only valid JSON with these fields: "
                         "headers (list), classes (object), functions (object), enums (object), "
-                        "diagnostics (list of strings describing warnings, runtime notes, or suggestions). "
+                        "diagnostics (list of strings describing warnings, runtime notes, or any suggestions). "
                         "Diagnostics should always be filled with any performance warnings or observations. "
                         "Do not include explanations or comments elsewhere. "
                         "Empty sections should be {} or []."
