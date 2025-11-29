@@ -88,7 +88,8 @@ def recursiveSearch(node, filepath, headers, functions, classes, enums, current_
 
         recursiveSearch(child, filepath, headers, functions, classes, enums, current_class)
 
-def analyze_cpp_project(filepaths, with_ai=False, clang_args = None):
+def analyze_cpp_project(filepaths, with_ai=False, clang_args=None, run_args=None):
+
     project_results = {
         "headers": set(),
         "functions": {},
@@ -99,8 +100,8 @@ def analyze_cpp_project(filepaths, with_ai=False, clang_args = None):
 
     # Analyze each file
     for fp in filepaths:
-        if not fp.endswith(".cpp"):
-            continue   # <---- skip headers here
+        if not (fp.endswith(".cpp") or fp.endswith(".cc")):
+            continue   # skip headers
         results = analyze_cpp_file(fp, clang_args)
         project_results["headers"].update(results["headers"])
         project_results["functions"].update(results["functions"])
@@ -109,10 +110,12 @@ def analyze_cpp_project(filepaths, with_ai=False, clang_args = None):
         project_results["diagnostics"].extend(results["diagnostics"])
 
     # Compile all files together
-    baseline = compile_and_run_project(filepaths)
-    print(f"Baseline runtime: {baseline:.6f}s" if baseline else "Baseline runtime: None")
+    baseline = compile_and_run_project(filepaths, run_args=run_args)
+    if baseline is not None:
+        print(f"Baseline runtime: {baseline:.6f}s")
+    else:
+        print("Baseline runtime: None")
 
-    # Convert headers to sorted list
     project_results["headers"] = sorted(project_results["headers"])
 
     if with_ai and project_results["functions"]:
@@ -120,6 +123,7 @@ def analyze_cpp_project(filepaths, with_ai=False, clang_args = None):
         project_results["ai_feedback"] = {"best_json": best_json, "best_time": best_time}
 
     return project_results
+
 
 # CLI
 if __name__ == "__main__":
@@ -129,7 +133,7 @@ if __name__ == "__main__":
 
     args = sys.argv[1:]
     use_ai = "--ai" in args
-    filepaths = [a for a in args if a.endswith(".cpp")]
+    filepaths = [a for a in args if a.endswith(".cpp") or a.endswith(".cc")]
 
     results = analyze_cpp_project(filepaths, with_ai=use_ai, clang_args = None)
 

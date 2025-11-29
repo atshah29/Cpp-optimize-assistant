@@ -25,7 +25,11 @@ client = Groq(api_key=api_key)
 
 def reinforcement_loop(label, original_json, baseline_time, iterations=3):
     """Iteratively optimize code via Groq with runtime feedback loop."""
-    print(f"Baseline runtime: {baseline_time:.6f}s")
+    if baseline_time is None:
+        print("⚠️ No baseline runtime (compile-only mode). Continuing optimization without timing.")
+        baseline_time = 0.0  # prevent format errors
+    else:
+        print(f"Baseline runtime: {baseline_time:.6f}s")
 
     best_json = original_json
     best_time = baseline_time
@@ -84,12 +88,13 @@ def reinforcement_loop(label, original_json, baseline_time, iterations=3):
         runtime = compile_and_run_project([cpp_file])
         if os.path.exists(cpp_file):
             os.remove(cpp_file)
-        if runtime is not None and runtime < best_time:
-            print(f"✅ Improvement found! {runtime:.6f}s < {best_time:.6f}s")
+        if runtime is not None and (best_time is None or runtime < best_time):
+            print(f"✅ Improvement found! {runtime:.6f}s < {best_time or float('inf'):.6f}s")
             best_time = runtime
             best_json = new_json
         else:
             print(f"⚠️ No improvement. Runtime = {runtime}")
+
 
     print(f"\n=== Reinforcement Summary ===")
     print(f"Baseline: {baseline_time:.6f}s | Best: {best_time:.6f}s")

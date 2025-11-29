@@ -1,7 +1,7 @@
 import os, subprocess, time
 
-def compile_and_run_project(filepaths):
-    cpp_files = [fp for fp in filepaths if fp.endswith(".cpp")]
+def compile_and_run_project(filepaths, run_args=None):
+    cpp_files = [fp for fp in filepaths if fp.endswith(".cpp") or fp.endswith(".cc")]
     if not cpp_files:
         return None
 
@@ -9,13 +9,14 @@ def compile_and_run_project(filepaths):
     try:
         subprocess.run(["clang++", "-std=c++17", *cpp_files, "-o", exe_path], check=True)
         start = time.time()
-        subprocess.run([f"./{exe_path}"], check=True, stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT)
+
+        cmd = [f"./{exe_path}"] + (run_args or [])
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
         return time.time() - start
     except subprocess.CalledProcessError:
         print("Compilation/Run failed")
         return None
-
 
 
 def json_to_cpp(data: dict, filename: str = "optimized.cpp"):
