@@ -3,27 +3,16 @@ import os, json
 from dotenv import load_dotenv
 from utils import json_to_cpp, compile_and_run_project
 
-
-
-# Load .env file variables into environment
-load_dotenv()
-
-# Now this should work if you have GROQ_API_KEY=... in your .env
-api_key = os.getenv("GROQ_API_KEY")
-
-if not api_key:
-    raise ValueError("❌ Missing GROQ_API_KEY. Make sure it's set in your .env or shell environment.")
-
-
 # Load .env file variables into environment
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
+
 if not api_key:
     raise ValueError("❌ Missing GROQ_API_KEY. Make sure it's set in your .env or shell environment.")
 
 client = Groq(api_key=api_key)
 
-def reinforcement_loop(label, original_json, baseline_time, iterations=3):
+def reinforcement_loop(label, original_json, baseline_time, iterations=3, clang_args=None, run_args=None):
     """Iteratively optimize code via Groq with runtime feedback loop."""
     if baseline_time is None:
         print("⚠️ No baseline runtime (compile-only mode). Continuing optimization without timing.")
@@ -44,7 +33,7 @@ def reinforcement_loop(label, original_json, baseline_time, iterations=3):
         else:
             feedback += "At least as fast as baseline. Try further improving performance."
 
-        # Groq call (same params you had working)
+        # Groq call
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",  
             messages=[
@@ -52,7 +41,8 @@ def reinforcement_loop(label, original_json, baseline_time, iterations=3):
                     "role": "system",
                     "content": (
                         "You are a C++ performance optimization assistant. "
-                        "Focus on runtime efficiency, memory usage, and best practices."
+                        "Focus on runtime efficiency, memory usage, and best practices. "
+                        "IMPORTANT: Preserve ALL headers from the original code."
                     )
                 },
                 {
@@ -79,13 +69,21 @@ def reinforcement_loop(label, original_json, baseline_time, iterations=3):
 
         try:
             new_json = json.loads(response.choices[0].message.content.strip())
+            
+            # Preserve original headers
+            orig_headers = set(original_json.get("headers", []))
+            new_headers = set(new_json.get("headers", []))
+            if not orig_headers.issubset(new_headers):
+                print("⚠️ Warning: Some headers were removed. Restoring original headers.")
+                new_json["headers"] = list(orig_headers.union(new_headers))
+                
         except json.JSONDecodeError:
             print("❌ Invalid JSON from model.")
             continue
 
-        # Write + test
+        # Write + test with clang_args and run_args
         cpp_file = json_to_cpp(new_json, f"iter_{i+1}.cpp")
-        runtime = compile_and_run_project([cpp_file])
+        runtime = compile_and_run_project([cpp_file], run_args=run_args, clang_args=clang_args)
         if os.path.exists(cpp_file):
             os.remove(cpp_file)
         if runtime is not None and (best_time is None or runtime < best_time):
@@ -95,9 +93,6 @@ def reinforcement_loop(label, original_json, baseline_time, iterations=3):
         else:
             print(f"⚠️ No improvement. Runtime = {runtime}")
 
-
     print(f"\n=== Reinforcement Summary ===")
     print(f"Baseline: {baseline_time:.6f}s | Best: {best_time:.6f}s")
     return best_json, best_time
-
-
