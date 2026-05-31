@@ -7,16 +7,20 @@ from fastapi.responses import FileResponse
 from analyze import analyze_cpp_project
 from utils import json_to_cpp
 
-app = FastAPI(
-    title="C++ Optimizer API", 
-    description="Optimize C++ projects using AI",
-    version="2.0"
+app = FastAPI(title="C++ Optimizer API", description="Optimize C++ projects using AI")
+
+from fastapi.middleware.cors import CORSMiddleware
+
+# Allow the React frontend to communicate with the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # This is the default port for Vite/React
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-
-def process_project(project_root: Path, filepaths: list, include_paths: list, 
-                   run_args: list, work_dir: str = None, skip_execution: bool = False,
-                   timeout: int = 10):
+def process_project(project_root: Path, filepaths: list, include_paths: list, run_args: list, work_dir: str = None, skip_execution: bool = False):
     """Common processing logic for both upload methods."""
     if not filepaths:
         raise HTTPException(status_code=400, detail="No C++ source files found in upload")
@@ -48,7 +52,6 @@ def process_project(project_root: Path, filepaths: list, include_paths: list,
         print(f"⚙️  Runtime args: {', '.join(run_args)}")
     if skip_execution:
         print(f"⏭️  Execution: SKIPPED (compile-only mode)")
-    print(f"⏱️  Timeout: {timeout}s")
     print(f"{'='*60}\n")
     
     # Determine execution directory
@@ -68,8 +71,7 @@ def process_project(project_root: Path, filepaths: list, include_paths: list,
             filepaths,
             with_ai=True,
             clang_args=clang_args,
-            run_args=run_args if not skip_execution else None,
-            timeout=timeout
+            run_args=run_args if not skip_execution else None
         )
         return results
     finally:
@@ -81,27 +83,13 @@ async def root():
     """API information"""
     return {
         "name": "C++ Optimizer API",
-        "version": "2.0",
+        "version": "1.0",
         "endpoints": {
             "/optimize-zip": "Upload entire project as ZIP (recommended for full projects)",
             "/optimize-files": "Upload individual files (good for quick testing)",
-            "/health": "Health check endpoint",
             "/docs": "Interactive API documentation"
-        },
-        "improvements": [
-            "Better error handling and validation",
-            "Duplicate declaration detection",
-            "Correctness verification",
-            "Configurable execution timeout",
-            "Enhanced feedback with statistics"
-        ]
+        }
     }
-
-
-@app.get("/health")
-async def health():
-    """Health check endpoint"""
-    return {"status": "healthy", "version": "2.0"}
 
 
 @app.post("/optimize-zip")
@@ -110,8 +98,7 @@ async def optimize_zip(
     program_args: str = Form("", description="Comma-separated runtime arguments (e.g., 'data/input.txt')"),
     include_dirs: str = Form("", description="Comma-separated additional include directories"),
     working_dir: str = Form("", description="Subdirectory to run program from (leave empty for root)"),
-    skip_execution: bool = Form(False, description="Skip running the program (compile-only mode, for interactive programs)"),
-    timeout: int = Form(10, description="Execution timeout in seconds (default: 10)")
+    skip_execution: bool = Form(False, description="Skip running the program (compile-only mode, for interactive programs)")
 ):
     """
     **Upload entire project as ZIP** (Recommended for full projects with data files)
@@ -121,18 +108,10 @@ async def optimize_zip(
     2. Upload the ZIP
     3. Set program_args if needed (e.g., "data/input.txt")
     4. Check skip_execution for interactive programs that need user input
-    5. Adjust timeout if your program needs more than 10 seconds
-    
-    **Returns:**
-    - Optimized C++ file combining all sources
-    - Includes performance statistics in output
     """
 
     if not project_zip.filename.endswith('.zip'):
         raise HTTPException(status_code=400, detail="File must be a .zip archive")
-    
-    if timeout < 1 or timeout > 300:
-        raise HTTPException(status_code=400, detail="Timeout must be between 1 and 300 seconds")
     
     include_paths = [p.strip() for p in include_dirs.split(",") if p.strip()]
     run_args = [a.strip() for a in program_args.split(",") if a.strip()]
@@ -182,7 +161,7 @@ async def optimize_zip(
                 
                 if file.endswith(source_exts) and not file.endswith(header_exts):
                     filepaths.append(str(file_path))
-                    print(f"  ✅ {rel_path} (will compile)")
+                    print(f"   {rel_path} (will compile)")
                 elif file.endswith(header_exts):
                     print(f"  📋 {rel_path} (header - will be available for #include)")
                 else:
@@ -195,10 +174,7 @@ async def optimize_zip(
             )
 
         try:
-            results = process_project(
-                project_root, filepaths, include_paths, run_args, 
-                work_dir, skip_execution, timeout
-            )
+            results = process_project(project_root, filepaths, include_paths, run_args, work_dir, skip_execution)
         except Exception as e:
             import traceback
             print("ERROR during analysis:\n", traceback.format_exc())
@@ -210,26 +186,11 @@ async def optimize_zip(
         final_json = results["ai_feedback"]["best_json"]
         cpp_file = json_to_cpp(final_json, filename="project_combined.cpp")
 
-        # Add optimization metadata as comments
         with open(cpp_file, "a") as f:
-            f.write("\n\n// ============================================\n")
-            f.write("// Optimized by C++ AI Assistant v2.0\n")
-            if results["ai_feedback"].get("baseline_time"):
-                baseline = results["ai_feedback"]["baseline_time"]
-                best = results["ai_feedback"]["best_time"]
-                improvement = ((baseline - best) / baseline * 100) if baseline else 0
-                f.write(f"// Baseline: {baseline:.6f}s\n")
-                f.write(f"// Optimized: {best:.6f}s\n")
-                f.write(f"// Improvement: {improvement:+.2f}%\n")
-            f.write("// ============================================\n")
+            f.write("\n\n// Optimized by Aadesh's C++ AI Assistant")
 
-        print(f"\n✅ Optimization complete! Generated: {cpp_file}\n")
-        return FileResponse(
-            cpp_file, 
-            media_type="text/x-c", 
-            filename="project_combined.cpp",
-            headers={"X-Optimization-Status": "success"}
-        )
+        print(f"\n Optimization complete! Generated: {cpp_file}\n")
+        return FileResponse(cpp_file, media_type="text/x-c", filename="project_combined.cpp")
 
 
 @app.post("/optimize-files")
@@ -237,18 +198,11 @@ async def optimize_files(
     cpp_files: list[UploadFile] = File(..., description="C++ source files (.cpp, .cc, .c)"),
     program_args: str = Form("", description="Comma-separated runtime arguments"),
     include_dirs: str = Form("", description="Comma-separated additional include directories"),
-    skip_execution: bool = Form(False, description="Skip running the program (compile-only mode)"),
-    timeout: int = Form(10, description="Execution timeout in seconds (default: 10)")
+    skip_execution: bool = Form(False, description="Skip running the program (compile-only mode)")
 ):
     """
     **Upload individual files** (Good for quick testing of single files)
-    
-    **Note:** This method is best for simple single-file programs.
-    For projects with multiple files and dependencies, use /optimize-zip instead.
     """
-    
-    if timeout < 1 or timeout > 300:
-        raise HTTPException(status_code=400, detail="Timeout must be between 1 and 300 seconds")
     
     source_exts = (".cpp", ".cc", ".c", ".cxx")
     
@@ -280,10 +234,7 @@ async def optimize_files(
             print(f"  ✅ {upload.filename}")
 
         try:
-            results = process_project(
-                project_root, filepaths, include_paths, run_args, 
-                None, skip_execution, timeout
-            )
+            results = process_project(project_root, filepaths, include_paths, run_args, None, skip_execution)
         except Exception as e:
             import traceback
             print("ERROR during analysis:\n", traceback.format_exc())
@@ -295,28 +246,8 @@ async def optimize_files(
         final_json = results["ai_feedback"]["best_json"]
         cpp_file = json_to_cpp(final_json, filename="project_combined.cpp")
 
-        # Add optimization metadata
         with open(cpp_file, "a") as f:
-            f.write("\n\n// ============================================\n")
-            f.write("// Optimized by C++ AI Assistant v2.0\n")
-            if results["ai_feedback"].get("baseline_time"):
-                baseline = results["ai_feedback"]["baseline_time"]
-                best = results["ai_feedback"]["best_time"]
-                improvement = ((baseline - best) / baseline * 100) if baseline else 0
-                f.write(f"// Baseline: {baseline:.6f}s\n")
-                f.write(f"// Optimized: {best:.6f}s\n")
-                f.write(f"// Improvement: {improvement:+.2f}%\n")
-            f.write("// ============================================\n")
+            f.write("\n\n// Optimized by Aadesh's C++ AI Assistant")
 
-        print(f"\n✅ Optimization complete! Generated: {cpp_file}\n")
-        return FileResponse(
-            cpp_file, 
-            media_type="text/x-c", 
-            filename="project_combined.cpp",
-            headers={"X-Optimization-Status": "success"}
-        )
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        print(f"\n Optimization complete! Generated: {cpp_file}\n")
+        return FileResponse(cpp_file, media_type="text/x-c", filename="project_combined.cpp")
