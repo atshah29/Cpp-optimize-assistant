@@ -1,0 +1,13 @@
+{
+  "mode": "optimize",
+  "sources": ["main.cpp"],
+  "editable_files": ["main.cpp"],
+  "cases": [
+    {"name": "one million values", "args": ["1000000"]},
+    {"name": "two million values", "args": ["2000000"]}
+  ],
+  "attempts": 3,
+  "repeats": 7,
+  "run_timeout": 15,
+  "profile": true
+}

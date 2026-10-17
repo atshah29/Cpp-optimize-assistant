@@ -210,5 +210,13 @@ __marimo__/
 .cpp
 
 #test stuff
-*.cpp
-*.h
+# Keep fixtures and examples in version control.
+project_combined.cpp
+testFile.cpp
+.tools/
+.optimizer-jobs/
+benchmark-results/
+optimizer-result.zip
+optimized_bin
+iter_*.cpp
+.DS_Store

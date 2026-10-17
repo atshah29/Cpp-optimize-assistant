@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.16)
+project(optimizer_example LANGUAGES CXX)
+add_executable(example src/main.cpp src/calculate.cpp)
+target_compile_features(example PRIVATE cxx_std_17)
+target_include_directories(example PRIVATE include)

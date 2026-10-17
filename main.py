@@ -1,253 +1,211 @@
+"""Local API: upload -> job -> progress -> evidence and preserved source archive."""
+
+from contextlib import asynccontextmanager
+import json
 import os
+from pathlib import Path
+import shutil
 import tempfile
 import zipfile
-from pathlib import Path
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import FileResponse
-from analyze import analyze_cpp_project
-from utils import json_to_cpp
 
-app = FastAPI(title="C++ Optimizer API", description="Optimize C++ projects using AI")
-
+from dotenv import load_dotenv
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.concurrency import run_in_threadpool
 
-# Allow the React frontend to communicate with the API
+from jobs import JobStore
+from schemas import Options
+from utils import MAX_UPLOAD, extract_project, inside, source_files
+
+load_dotenv()
+ROOT = Path(__file__).resolve().parent
+
+
+class RequestLimit:
+    """Bound the full multipart body before the framework spools uploaded files."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        headers = dict(scope["headers"])
+        origin = headers.get(b"origin", b"").decode()
+        allowed = {
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        }
+        if scope["method"] in {"POST", "DELETE"} and origin and origin not in allowed:
+            return await JSONResponse({"detail": "Only local browser origins are allowed"}, 403)(
+                scope, receive, send
+            )
+        if scope["method"] != "POST":
+            return await self.app(scope, receive, send)
+        chunks, total = [], 0
+        while True:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            body = message.get("body", b"")
+            total += len(body)
+            if total > MAX_UPLOAD + 131072:
+                return await JSONResponse({"detail": "Upload exceeds 20 MiB"}, 413)(scope, receive, send)
+            chunks.append(body)
+            if not message.get("more_body", False):
+                break
+        delivered = False
+
+        async def replay():
+            nonlocal delivered
+            if not delivered:
+                delivered = True
+                return {"type": "http.request", "body": b"".join(chunks), "more_body": False}
+            return await receive()
+
+        await self.app(scope, replay, send)
+
+
+@asynccontextmanager
+async def lifespan(application):
+    application.state.jobs = JobStore(Path(os.getenv("OPTIMIZER_JOB_DIR", str(ROOT / ".optimizer-jobs"))))
+    yield
+    await run_in_threadpool(application.state.jobs.close)
+
+
+app = FastAPI(title="C++ Optimizer", version="0.2.0", lifespan=lifespan)
+app.add_middleware(RequestLimit)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], # This is the default port for Vite/React
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type"],
 )
-
-def process_project(project_root: Path, filepaths: list, include_paths: list, run_args: list, work_dir: str = None, skip_execution: bool = False):
-    """Common processing logic for both upload methods."""
-    if not filepaths:
-        raise HTTPException(status_code=400, detail="No C++ source files found in upload")
-    
-    # Build clang arguments
-    clang_args = [
-        "-std=c++17",
-        "-isysroot", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
-    ]
-    
-    # Add custom include paths
-    for inc in include_paths:
-        clang_args.append(f"-I{inc}")
-    
-    # Add project root and all subdirectories as include paths
-    clang_args.append(f"-I{project_root}")
-    for root, dirs, _ in os.walk(project_root):
-        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', '__MACOSX']]
-        for dir_name in dirs:
-            dir_path = os.path.join(root, dir_name)
-            clang_args.append(f"-I{dir_path}")
-    
-    print(f"\n{'='*60}")
-    print(f"🔧 Compiling {len(filepaths)} C++ file(s)")
-    print(f"📂 Project root: {project_root}")
-    if work_dir:
-        print(f"📂 Working directory: {work_dir}")
-    if run_args:
-        print(f"⚙️  Runtime args: {', '.join(run_args)}")
-    if skip_execution:
-        print(f"⏭️  Execution: SKIPPED (compile-only mode)")
-    print(f"{'='*60}\n")
-    
-    # Determine execution directory
-    execution_dir = project_root / work_dir if work_dir else project_root
-    if not execution_dir.exists():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Working directory '{work_dir}' not found in project"
-        )
-    
-    # Change to execution directory
-    original_dir = os.getcwd()
-    os.chdir(execution_dir)
-    
-    try:
-        results = analyze_cpp_project(
-            filepaths,
-            with_ai=True,
-            clang_args=clang_args,
-            run_args=run_args if not skip_execution else None
-        )
-        return results
-    finally:
-        os.chdir(original_dir)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"])
 
 
-@app.get("/")
-async def root():
-    """API information"""
+@app.get("/api/health")
+async def health():
+    mode = os.getenv("OPTIMIZER_RUNNER", "docker")
     return {
-        "name": "C++ Optimizer API",
-        "version": "1.0",
-        "endpoints": {
-            "/optimize-zip": "Upload entire project as ZIP (recommended for full projects)",
-            "/optimize-files": "Upload individual files (good for quick testing)",
-            "/docs": "Interactive API documentation"
-        }
+        "status": "ok",
+        "runner": mode,
+        "model_configured": bool(os.getenv("GROQ_API_KEY")),
+        "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+        "runner_available": bool(shutil.which("docker" if mode == "docker" else "clang++")),
+        "notice": "Use locally. Native execution is only for code you trust.",
     }
 
 
-@app.post("/optimize-zip")
-async def optimize_zip(
-    project_zip: UploadFile = File(..., description="ZIP file containing your entire C++ project"),
-    program_args: str = Form("", description="Comma-separated runtime arguments (e.g., 'data/input.txt')"),
-    include_dirs: str = Form("", description="Comma-separated additional include directories"),
-    working_dir: str = Form("", description="Subdirectory to run program from (leave empty for root)"),
-    skip_execution: bool = Form(False, description="Skip running the program (compile-only mode, for interactive programs)")
-):
-    """
-    **Upload entire project as ZIP** (Recommended for full projects with data files)
-    
-    **Steps:**
-    1. Zip your project: `zip -r project.zip .`
-    2. Upload the ZIP
-    3. Set program_args if needed (e.g., "data/input.txt")
-    4. Check skip_execution for interactive programs that need user input
-    """
+def prepare_and_submit(upload: Path, name: str, raw_options: dict, store: JobStore, parent: Path):
+    project = parent / "project"
+    project.mkdir()
+    if name.lower().endswith(".zip"):
+        extract_project(upload, project)
+        entries = list(project.iterdir())
+        if len(entries) == 1 and entries[0].is_dir():
+            project = entries[0]
+    elif Path(name).suffix.lower() in {".c", ".cpp", ".cc", ".cxx"}:
+        path = inside(project, name)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(upload, path)
+    else:
+        raise ValueError("Upload a C/C++ source file or a ZIP project")
+    manifest = project / "optimizer.json"
+    defaults = json.loads(manifest.read_text()) if manifest.exists() else {}
+    if not isinstance(defaults, dict):
+        raise ValueError("optimizer.json must contain an object")
+    options = Options.model_validate({**defaults, **raw_options})
+    files = source_files(project)
+    if not files:
+        raise ValueError("No UTF-8 C/C++ sources found")
+    for name in options.sources + options.include_dirs + options.editable_files + [options.working_dir]:
+        if not inside(project, name).exists():
+            raise ValueError(f"Project path does not exist: {name}")
+    return store.submit(project, options.model_dump())
 
-    if not project_zip.filename.endswith('.zip'):
-        raise HTTPException(status_code=400, detail="File must be a .zip archive")
-    
-    include_paths = [p.strip() for p in include_dirs.split(",") if p.strip()]
-    run_args = [a.strip() for a in program_args.split(",") if a.strip()]
-    work_dir = working_dir.strip() if working_dir else None
 
-    for path in include_paths:
-        if not os.path.exists(path):
-            raise HTTPException(status_code=400, detail=f"Include path not found: {path}")
-
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        project_root = Path(tmpdirname)
-        source_exts = (".cpp", ".cc", ".c", ".cxx")
-        
-        print(f"\n📦 Uploading project to: {tmpdirname}")
-        print(f"📦 Extracting ZIP: {project_zip.filename}")
-        
-        # Save and extract ZIP
-        zip_path = project_root / "upload.zip"
-        with open(zip_path, "wb") as f:
-            f.write(await project_zip.read())
-        
-        try:
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                zip_ref.extractall(project_root)
-        except zipfile.BadZipFile:
-            raise HTTPException(status_code=400, detail="Invalid ZIP file")
-        
-        os.remove(zip_path)
-        
-        # Find all files
-        filepaths = []
-        all_files = []
-        
-        header_exts = (".h", ".hpp", ".hxx", ".hh", ".H")
-        skip_files = ("Makefile", "CMakeLists.txt", "README", "LICENSE")
-        
-        for root, dirs, files_in_dir in os.walk(project_root):
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', '__MACOSX']]
-            
-            for file in files_in_dir:
-                if file.startswith('.') or file.startswith('._') or file in skip_files:
-                    continue
-                    
-                file_path = Path(root) / file
-                rel_path = file_path.relative_to(project_root)
-                all_files.append(str(rel_path))
-                
-                if file.endswith(source_exts) and not file.endswith(header_exts):
-                    filepaths.append(str(file_path))
-                    print(f"   {rel_path} (will compile)")
-                elif file.endswith(header_exts):
-                    print(f"  📋 {rel_path} (header - will be available for #include)")
-                else:
-                    print(f"  📄 {rel_path}")
-        
-        if not filepaths:
-            raise HTTPException(
-                status_code=400,
-                detail=f"No C++ source files found. Files in ZIP: {', '.join(all_files)}"
+@app.post("/api/jobs", status_code=202)
+async def submit(request: Request, project: UploadFile = File(...), options: str = Form("{}")):
+    try:
+        raw = json.loads(options)
+        if not isinstance(raw, dict):
+            raise ValueError("Options must be a JSON object")
+        with tempfile.TemporaryDirectory() as folder:
+            parent = Path(folder)
+            upload = parent / "upload"
+            total = 0
+            with upload.open("wb") as output:
+                while chunk := await project.read(65536):
+                    total += len(chunk)
+                    if total > MAX_UPLOAD:
+                        raise HTTPException(413, "Upload exceeds 20 MiB")
+                    output.write(chunk)
+            return await run_in_threadpool(
+                prepare_and_submit, upload, project.filename or "", raw, request.app.state.jobs, parent
             )
-
-        try:
-            results = process_project(project_root, filepaths, include_paths, run_args, work_dir, skip_execution)
-        except Exception as e:
-            import traceback
-            print("ERROR during analysis:\n", traceback.format_exc())
-            raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
-
-        if "ai_feedback" not in results:
-            raise HTTPException(status_code=500, detail="AI optimization failed")
-
-        final_json = results["ai_feedback"]["best_json"]
-        cpp_file = json_to_cpp(final_json, filename="project_combined.cpp")
-
-        with open(cpp_file, "a") as f:
-            f.write("\n\n// Optimized by Aadesh's C++ AI Assistant")
-
-        print(f"\n Optimization complete! Generated: {cpp_file}\n")
-        return FileResponse(cpp_file, media_type="text/x-c", filename="project_combined.cpp")
+    except (ValueError, ValidationError, zipfile.BadZipFile, UnicodeError) as exc:
+        raise HTTPException(422, str(exc)[:3000]) from exc
+    finally:
+        await project.close()
 
 
-@app.post("/optimize-files")
-async def optimize_files(
-    cpp_files: list[UploadFile] = File(..., description="C++ source files (.cpp, .cc, .c)"),
-    program_args: str = Form("", description="Comma-separated runtime arguments"),
-    include_dirs: str = Form("", description="Comma-separated additional include directories"),
-    skip_execution: bool = Form(False, description="Skip running the program (compile-only mode)")
-):
-    """
-    **Upload individual files** (Good for quick testing of single files)
-    """
-    
-    source_exts = (".cpp", ".cc", ".c", ".cxx")
-    
-    include_paths = [p.strip() for p in include_dirs.split(",") if p.strip()]
-    run_args = [a.strip() for a in program_args.split(",") if a.strip()]
+def get_job(request, identifier):
+    try:
+        return request.app.state.jobs.get(identifier)
+    except KeyError as exc:
+        raise HTTPException(404, "Job not found or expired (results are retained for 24 hours)") from exc
 
-    for path in include_paths:
-        if not os.path.exists(path):
-            raise HTTPException(status_code=400, detail=f"Include path not found: {path}")
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        project_root = Path(tmpdirname)
-        filepaths = []
-        
-        print(f"\n📦 Uploading files to: {tmpdirname}")
-        
-        for upload in cpp_files:
-            if not upload.filename.endswith(source_exts):
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"File '{upload.filename}' must be a C++ source file (.cpp, .cc, .c, .cxx)"
-                )
-            
-            file_path = project_root / upload.filename
-            with open(file_path, "wb") as f:
-                f.write(await upload.read())
-            
-            filepaths.append(str(file_path))
-            print(f"  ✅ {upload.filename}")
+@app.get("/api/jobs/{identifier}")
+async def status(identifier: str, request: Request):
+    return get_job(request, identifier)
 
-        try:
-            results = process_project(project_root, filepaths, include_paths, run_args, None, skip_execution)
-        except Exception as e:
-            import traceback
-            print("ERROR during analysis:\n", traceback.format_exc())
-            raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-        if "ai_feedback" not in results:
-            raise HTTPException(status_code=500, detail="AI optimization failed")
+@app.delete("/api/jobs/{identifier}")
+async def cancel(identifier: str, request: Request):
+    get_job(request, identifier)
+    return request.app.state.jobs.cancel(identifier)
 
-        final_json = results["ai_feedback"]["best_json"]
-        cpp_file = json_to_cpp(final_json, filename="project_combined.cpp")
 
-        with open(cpp_file, "a") as f:
-            f.write("\n\n// Optimized by Aadesh's C++ AI Assistant")
+@app.get("/api/jobs/{identifier}/report")
+async def report(identifier: str, request: Request):
+    job = get_job(request, identifier)
+    if job["status"] != "completed":
+        raise HTTPException(409, "Job has no completed report")
+    return FileResponse(
+        request.app.state.jobs.root / identifier / "report.json", media_type="application/json"
+    )
 
-        print(f"\n Optimization complete! Generated: {cpp_file}\n")
-        return FileResponse(cpp_file, media_type="text/x-c", filename="project_combined.cpp")
+
+@app.get("/api/jobs/{identifier}/download")
+async def download(identifier: str, request: Request):
+    job = get_job(request, identifier)
+    if job["status"] != "completed":
+        raise HTTPException(409, "Job has no completed download")
+    return FileResponse(
+        request.app.state.jobs.root / identifier / "result.zip",
+        filename=f"cpp-optimizer-{identifier[:8]}.zip",
+        media_type="application/zip",
+    )
+
+
+@app.post("/optimize-files", include_in_schema=False)
+@app.post("/optimize-zip", include_in_schema=False)
+async def legacy():
+    raise HTTPException(410, "Use POST /api/jobs, then poll its status and download the result")
+
+
+if (ROOT / "frontend/dist").is_dir():
+    app.mount("/", StaticFiles(directory=ROOT / "frontend/dist", html=True), name="frontend")
+else:
+
+    @app.get("/")
+    async def root():
+        return {"name": "C++ Optimizer", "docs": "/docs", "frontend": "http://localhost:5173"}

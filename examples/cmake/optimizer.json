@@ -1,0 +1,12 @@
+{
+  "mode": "benchmark",
+  "build": "cmake",
+  "cmake_target": "example",
+  "executable": "example",
+  "editable_files": ["src/calculate.cpp"],
+  "cases": [
+    {"name": "positive", "stdin": "12\n", "expected_stdout": "144\n"},
+    {"name": "negative", "stdin": "-4\n", "expected_stdout": "16\n"}
+  ],
+  "profile": false
+}

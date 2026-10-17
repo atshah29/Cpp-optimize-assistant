@@ -1,0 +1,9 @@
+:root { font-family: 'DM Sans', system-ui, sans-serif; color: #213536; background: #f4f5f0; font-synthesis: none; text-rendering: optimizeLegibility; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; }
+button, .button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+:focus-visible { outline: 3px solid #a0ba52; outline-offset: 3px; }
+::selection { background: #d7e9ad; }

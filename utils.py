@@ -1,133 +1,122 @@
-import os
-import subprocess
-import time
+"""Project paths, bounded archive extraction, and transactional source edits."""
 
-def compile_and_run_project(filepaths, run_args=None, clang_args=None):
-    """Compile and run C++ project, returning execution time."""
-    # Filter for source files
-    cpp_files = [fp for fp in filepaths if fp.endswith((".cpp", ".cc", ".c", ".cxx"))]
-    if not cpp_files:
-        return None
+from __future__ import annotations
 
-    exe_path = "optimized_bin"
-    
-    # FORCE -O3. If we don't use -O3, the AI is optimizing against a slow baseline.
-    compile_cmd = ["clang++", "-O3", "-std=c++17"]
-    
-    if clang_args:
-        # Only add flags that aren't optimization levels
-        clean_args = [a for a in clang_args if not a.startswith("-O")]
-        compile_cmd.extend(clean_args)
-        
-    compile_cmd.extend(cpp_files)
-    compile_cmd.extend(["-o", exe_path])
-    
-    try:
-        # Compile
-        result = subprocess.run(compile_cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"Compilation failed:")
-            print("\n".join(result.stderr.splitlines()[:10])) # Print first 10 lines of error
-            return None
-        
-        # Run
-        start = time.time()
-        cmd = [f"./{exe_path}"] + (run_args or [])
-        
-        # Increase timeout to 20s to be safe
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-        
-        if result.returncode != 0:
-            print(f"⚠️ Runtime Error (Exit {result.returncode}): {result.stderr}")
-            return None
-            
-        return time.time() - start
-        
-    except Exception as e:
-        print(f" Execution error: {e}")
-        return None
-    finally:
-        if os.path.exists(exe_path):
-            os.remove(exe_path)
+import difflib
+import hashlib
+from pathlib import Path, PurePosixPath
+import stat
+import zipfile
 
-def json_to_cpp(data: dict, filename: str = "project_combined.cpp"):
-    """Convert JSON to C++ with deduplication and header fixing."""
-    lines = []
-    
-    # Helper to extract code string
-    def get_code(item):
-        if isinstance(item, str): return item
-        if isinstance(item, dict):
-            return item.get('code', item.get('definition', list(item.values())[0]))
-        return str(item)
+SOURCE_EXTENSIONS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx"}
+MAX_UPLOAD = 20 * 1024 * 1024
+MAX_EXTRACTED = 50 * 1024 * 1024
+MAX_FILES = 500
+IGNORED = {".git", "__MACOSX", "node_modules", ".venv", "build", "dist", ".optimizer-build"}
 
-    # 1. System Headers ONLY
-    headers = data.get("headers", [])
-    if isinstance(headers, dict): headers = list(headers.values())
-    
-    seen_headers = set()
-    for h in headers:
-        h_clean = get_code(h).strip()
-        
-        # Skip local includes (quoted)
-        if '"' in h_clean:
+
+def relative_path(value: str) -> str:
+    if not value or "\\" in value or "\x00" in value or ":" in value:
+        raise ValueError("Use a relative project path with forward slashes")
+    path = PurePosixPath(value)
+    if path.is_absolute() or ".." in path.parts:
+        raise ValueError("Paths must stay inside the project")
+    return path.as_posix()
+
+
+def inside(root: Path, value: str) -> Path:
+    target = (root / relative_path(value)).resolve()
+    if not target.is_relative_to(root.resolve()):
+        raise ValueError("Path escapes the project")
+    return target
+
+
+def extract_project(archive: Path, destination: Path) -> None:
+    total = 0
+    with zipfile.ZipFile(archive) as bundle:
+        entries = bundle.infolist()
+        if len(entries) > MAX_FILES:
+            raise ValueError(f"Archives may contain at most {MAX_FILES} entries")
+        seen = set()
+        for entry in entries:
+            name = relative_path(entry.filename.rstrip("/"))
+            if name in seen:
+                raise ValueError("Archive contains duplicate paths")
+            seen.add(name)
+            if stat.S_ISLNK(entry.external_attr >> 16):
+                raise ValueError("Archive symlinks are not allowed")
+            total += entry.file_size
+            if total > MAX_EXTRACTED or entry.flag_bits & 1:
+                raise ValueError("Archive is too large or encrypted")
+            if any(part in IGNORED or part.startswith(".") for part in PurePosixPath(name).parts):
+                continue
+            target = inside(destination, name)
+            if entry.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with bundle.open(entry) as source, target.open("wb") as output:
+                copied = 0
+                while chunk := source.read(65536):
+                    copied += len(chunk)
+                    if copied > entry.file_size or copied > MAX_EXTRACTED:
+                        raise ValueError("Archive exceeds its declared size")
+                    output.write(chunk)
+
+
+def source_files(root: Path) -> dict[str, str]:
+    result = {}
+    for path in sorted(root.rglob("*")):
+        rel = path.relative_to(root)
+        if any(part in IGNORED or part.startswith(".") for part in rel.parts):
             continue
-            
-        if h_clean.startswith("#"):
-            include_stmt = h_clean
-        elif h_clean.startswith("<"):
-            include_stmt = f"#include {h_clean}"
-        else:
-            include_stmt = f"#include <{h_clean}>"
-            
-        if include_stmt not in seen_headers:
-            lines.append(include_stmt)
-            seen_headers.add(include_stmt)
-            
-    lines.append("\nusing namespace std;\n")
+        if path.is_file() and path.suffix.lower() in SOURCE_EXTENSIONS:
+            if path.stat().st_size > 512_000:
+                continue
+            result[rel.as_posix()] = path.read_bytes().decode("utf-8")
+    return result
 
-    # 2. Definitions (Enums, Classes)
-    for category in ["enums", "classes"]:
-        items = data.get(category, {})
-        if isinstance(items, list):
-            for item in items: lines.append(get_code(item) + ";")
-        elif isinstance(items, dict):
-            for name, body in items.items():
-                code = get_code(body)
-                if not code.strip().endswith(";"): code += ";"
-                lines.append(code)
 
-    # 3. Globals (only if not using header)
-    globals_list = data.get("globals", [])
-    if isinstance(globals_list, dict): globals_list = list(globals_list.values())
-    
-    seen_globals = set()
-    for g in globals_list:
-        code = get_code(g).strip()
-        if not code.endswith(";"): code += ";"
-        if code not in seen_globals:
-            lines.append(code)
-            seen_globals.add(code)
+def apply_edits(root: Path, edits: list[dict], allowed: set[str]) -> str:
+    """Validate every edit before writing; only exact, unique matches are allowed."""
+    originals, updated = {}, {}
+    if not 1 <= len(edits) <= 12:
+        raise ValueError("A proposal must contain between 1 and 12 edits")
+    for edit in edits:
+        name = relative_path(edit["path"])
+        if name not in allowed:
+            raise ValueError(f"Editing {name} is not allowed")
+        path = inside(root, name)
+        if name not in originals:
+            originals[name] = path.read_bytes().decode("utf-8")
+            updated[name] = originals[name]
+        old, new = edit["old"], edit["new"]
+        if not old or old == new or updated[name].count(old) != 1:
+            raise ValueError(f"Edit in {name} must uniquely match existing text and change it")
+        updated[name] = updated[name].replace(old, new, 1)
+        if len(updated[name].encode()) > 512_000:
+            raise ValueError("Edited source is too large")
+    diff = "".join(
+        "".join(
+            difflib.unified_diff(
+                originals[name].splitlines(keepends=True),
+                content.splitlines(keepends=True),
+                fromfile=f"a/{name}",
+                tofile=f"b/{name}",
+            )
+        )
+        for name, content in updated.items()
+    )
+    for name, content in updated.items():
+        inside(root, name).write_bytes(content.encode("utf-8"))
+    return diff
 
-    lines.append("")
-    # 4. Functions
-    funcs = data.get("functions", {})
-    
-    # Forward declarations
-    for name, body in funcs.items():
-        if name != "main":
-            sig = get_code(body).split("{")[0].strip()
-            if "::" not in sig:
-                lines.append(sig + ";")
-            
-    lines.append("")
 
-    # Function Bodies
-    for name, body in funcs.items():
-        lines.append(get_code(body))
-        lines.append("")
-
-    with open(filename, "w") as f:
-        f.write("\n".join(lines))
-    
-    return filename
+def project_digest(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(root.rglob("*")):
+        if path.is_file():
+            digest.update(path.relative_to(root).as_posix().encode())
+            digest.update(b"\0")
+            digest.update(path.read_bytes())
+    return digest.hexdigest()
