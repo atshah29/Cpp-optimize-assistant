@@ -161,7 +161,7 @@ uv run python cli.py examples/sum --mode benchmark --output sum-baseline.zip
 
 ## Independent LLVM workloads
 
-The [LLVM adapter](benchmarks/llvm/README.md) adds five pinned C++ programs from LLVM's test suite, with verified source hashes and upstream reference outputs. They run under our validation harness using explicitly recorded smaller inputs. This is a selected subset, not a full upstream test-suite run. Their statistics stay separate from the 22 custom exercises.
+The [LLVM adapter](benchmarks/llvm/README.md) adds five pinned C++ programs from LLVM's test suite, with verified source hashes and upstream reference outputs. They run under our validation harness using explicitly recorded smaller inputs. The `protected-main-v1` policy prevents model changes to their workload drivers and repetition loops. This is a selected subset, not a full upstream test-suite run. Their statistics stay separate from the 22 custom exercises.
 
 ```sh
 uv run python benchmark_suite.py --suite llvm --mode benchmark --runner native --all --output benchmark-results/llvm-baselines

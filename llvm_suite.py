@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import ssl
@@ -67,9 +68,14 @@ def prepare(name: str, destination: Path):
             indent=2,
         )
     )
+    source = (cached / entry["source"]).read_text()
+    main = re.search(r"\bint\s+main\s*\(", source)
+    if main is None:
+        raise ValueError("Pinned LLVM source has no recognized main driver")
     return {
         "sources": [entry["source"]],
         "editable_files": [entry["source"]],
+        "protected_main": {entry["source"]: source[main.start() :]},
         "cases": [
             {
                 "name": "upstream-reference",

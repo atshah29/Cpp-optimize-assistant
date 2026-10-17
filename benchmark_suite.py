@@ -149,6 +149,7 @@ def main():
     if args.suite == "llvm":
         settings["suite_sha256"] = hashlib.sha256(MANIFEST.read_bytes()).hexdigest()
         settings["suite"] = "llvm"
+        settings["workload_policy"] = "protected-main-v1"
     # Avoid mixing incompatible machines or experiments in one headline statistic.
     settings["machine"] = {
         "system": platform.system(),

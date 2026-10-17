@@ -8,6 +8,8 @@ Each benchmark uses an explicitly selected smaller input and its upstream refere
 
 This is **a selected subset evaluated using our own harness**, not a complete run of LLVM's test suite, nor an LLVM-endorsed score. Inputs, compiler configuration, and results must be reported alongside any performance claim. Keep results separate from the custom 22-case suite.
 
+The `protected-main-v1` policy makes each complete `main` driver immutable. Proposals may optimize helper functions, but cannot delete benchmark repetitions, change input sizes, or replace printed results. `ary3` has no helper outside `main`, so under this conservative policy it can legitimately remain unchanged. An exploratory run without this guard was excluded after a model removed the matrix repetition loop; its results are not part of the published score. Use a fresh output directory when changing workload policy.
+
 ```sh
 uv run python benchmark_suite.py --suite llvm --mode benchmark --runner native --all --output benchmark-results/llvm-baselines
 uv run python benchmark_suite.py --suite llvm --mode optimize --runner native --next --output benchmark-results/llvm-optimized

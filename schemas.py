@@ -48,6 +48,16 @@ class Options(StrictModel):
     run_timeout: int = Field(default=10, ge=1, le=30)
     profile: bool = True
     editable_files: list[str] = Field(default_factory=list, max_length=100)
+    protected_main: dict[str, str] = Field(default_factory=dict, max_length=100)
+
+    @field_validator("protected_main")
+    @classmethod
+    def protected_driver_text(cls, values):
+        if sum(len(text.encode()) for text in values.values()) > 65536 or any(
+            not text for text in values.values()
+        ):
+            raise ValueError("Protected driver fragments must be nonempty and total at most 64 KiB")
+        return {relative_path(name): text for name, text in values.items()}
 
     @field_validator("sources", "include_dirs", "editable_files")
     @classmethod

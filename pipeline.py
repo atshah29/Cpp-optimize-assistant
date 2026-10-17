@@ -10,7 +10,7 @@ import zipfile
 from feedback import ModelUnavailable, propose
 from context import select_sources
 from runner import Cancelled, Runner
-from utils import apply_edits, project_digest, source_files
+from utils import apply_edits, inside, project_digest, source_files
 
 
 def make_context(root, options, baseline, history):
@@ -38,6 +38,7 @@ def make_context(root, options, baseline, history):
     context = {
         "sources": selected,
         "source_windows": windows,
+        "protected_main_files": list(options.get("protected_main", {})),
         "editable_files": sorted(allowed),
         "omitted_files": sorted(files.keys() - selected.keys()),
         "benchmarks": baseline.get("benchmarks", {}),
@@ -47,7 +48,7 @@ def make_context(root, options, baseline, history):
             {key: str(item[key])[:1200] for key in ("explanation", "status", "reason") if key in item}
             for item in history[-2:]
         ],
-        "constraints": "Same observable behavior; workload fixtures and build configuration are immutable. SOURCE EXCERPT markers are context annotations, not source text. Use exact existing source text for edits.",
+        "constraints": "Same observable behavior; workload fixtures and build configuration are immutable. main functions in protected_main_files are immutable benchmark drivers: do not change their loops, repetitions, inputs or outputs. Optimize helper functions only in those files; if none exist, return no edits. SOURCE EXCERPT markers are context annotations, not source text. Use exact existing source text for edits.",
     }
     context["profile"] = dict(context["profile"])
     if "report" in context["profile"]:
@@ -60,6 +61,7 @@ def make_context(root, options, baseline, history):
 def optimize(directory: Path, options: dict, cancel, update, proposer=propose, runner_factory=Runner):
     runner = runner_factory(cancel, time.monotonic() + 900)
     original = directory / "original"
+    validate_drivers(original, options.get("protected_main", {}))
     best = directory / "best"
     shutil.copytree(original, best)
     update(stage="Building and validating original", progress=5)
@@ -108,6 +110,7 @@ def optimize(directory: Path, options: dict, cancel, update, proposer=propose, r
                 record["diff"] = apply_edits(
                     candidate, [edit.model_dump() for edit in proposal.edits], allowed
                 )
+                validate_drivers(candidate, options.get("protected_main", {}))
                 fingerprint = project_digest(candidate)
                 if fingerprint in seen:
                     raise ValueError("Repeated candidate; no extra benchmark was run")
@@ -202,3 +205,11 @@ def optimize(directory: Path, options: dict, cancel, update, proposer=propose, r
         bundle.write(directory / "report.json", "report.json")
         bundle.write(directory / "changes.diff", "changes.diff")
     return result
+
+
+def validate_drivers(root, protected):
+    for name, fragment in protected.items():
+        if inside(root, name).read_text().count(fragment) != 1:
+            raise ValueError(
+                f"Protected benchmark driver changed in {name}; changing prescribed work is not a valid benchmark optimization"
+            )

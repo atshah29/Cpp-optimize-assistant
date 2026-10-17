@@ -5,6 +5,7 @@ import pytest
 
 from benchmark_suite import summarize
 from llvm_suite import MANIFEST, catalog, fetch, reference_stdout
+from pipeline import validate_drivers
 
 
 def test_pinned_manifest_and_reference_format():
@@ -42,3 +43,13 @@ def test_verified_cached_files_need_no_network(tmp_path, monkeypatch):
     (root / "a.cpp").write_bytes(payload)
     monkeypatch.setattr("llvm_suite.urlopen", lambda *a, **kw: pytest.fail("Unexpected download"))
     assert fetch(tmp_path) == root
+
+
+def test_benchmark_repetition_cannot_be_removed(tmp_path):
+    driver = "int main() { for (int i=0; i<1000; ++i) calculate(); }"
+    file = tmp_path / "matrix.cpp"
+    file.write_text("void calculate() {}\n" + driver)
+    validate_drivers(tmp_path, {"matrix.cpp": driver})
+    file.write_text("void calculate() {}\nint main() { calculate(); }")
+    with pytest.raises(ValueError, match="Protected benchmark driver changed"):
+        validate_drivers(tmp_path, {"matrix.cpp": driver})
