@@ -69,5 +69,5 @@ def test_docker_compile_only_never_runs(tmp_path, monkeypatch):
     monkeypatch.setenv("OPTIMIZER_RUNNER", "docker")
     tmp_path.chmod(0o755)
     (tmp_path / "main.cpp").write_text("int main() { for (;;) {} }")
-    result = evaluate(tmp_path, mode="compile")
+    result = evaluate(tmp_path, mode="compile", standard="c++23")
     assert result["compiled"] and not result["executed"]

@@ -129,6 +129,8 @@ def build(root: Path, options: dict) -> Path:
             obj = directory / f"{i}.o"
             compiler = "clang" if source.suffix == ".c" else "clang++"
             standard = "c17" if source.suffix == ".c" else options["standard"]
+            if standard == "c++23":
+                standard = "c++2b"  # Also accepted by the Debian runner's older Clang.
             args = [
                 compiler,
                 "-O3",
