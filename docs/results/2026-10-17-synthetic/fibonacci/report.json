@@ -1,0 +1,690 @@
+{
+  "mode": "optimize",
+  "runner": "native",
+  "baseline": {
+    "compiled": true,
+    "executed": true,
+    "environment": {
+      "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+      "system": "macOS-15.7.3-arm64-arm-64bit",
+      "architecture": "arm64",
+      "optimization": "-O3",
+      "timer": "time.perf_counter",
+      "omp_num_threads": 1
+    },
+    "references": {
+      "check-0-19": {
+        "stdout": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-1-47": {
+        "stdout": "654ee9da442fa353f59f11beb688fc7f76c8de62a6c18b2a181fdde2a27cc3ef",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-8-19": {
+        "stdout": "673650f936cb3b0a2f93ce09d81be10748b1b203c19e8176b4eefc1964a0cf3a",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-17-47": {
+        "stdout": "d1cbb3324f30dee3e1847dc48d5be58873b59b9c4711bac30ca01b6fc1a1a162",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "nominal": {
+        "stdout": "39d7a96a99538ec5300272dc7b7bf6dcb8af418f3b7b40ef004ffbef3cd72f2b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "larger": {
+        "stdout": "3d3ba8cd8a1b09c6ece59dac8a9967f68687179eea886d751cca88fd0eb59a1f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      }
+    },
+    "benchmarks": {
+      "nominal": {
+        "median_seconds": 0.0224547500256449,
+        "mad_seconds": 0.00016237504314631224,
+        "samples": [
+          0.022475042031146586,
+          0.02261712506879121,
+          0.021382707986049354,
+          0.02015404193662107,
+          0.022503916989080608,
+          0.0224547500256449,
+          0.021409207955002785
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.030717084067873657,
+        "mad_seconds": 0.0007745829643681645,
+        "samples": [
+          0.030717084067873657,
+          0.02976620802655816,
+          0.0312576669966802,
+          0.03149166703224182,
+          0.029779374948702753,
+          0.030153334024362266,
+          0.03158462489955127
+        ]
+      }
+    },
+    "profile": {
+      "available": false,
+      "reason": "Profiling disabled"
+    },
+    "analysis": {
+      "available": true,
+      "symbols": [
+        {
+          "id": "c:@F@make_data#I#I#",
+          "name": "make_data(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "common.hpp",
+          "line": 12,
+          "end_line": 20,
+          "definition": true
+        },
+        {
+          "id": "c:common.hpp@220@F@make_data#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 12,
+          "end_line": 12,
+          "definition": true
+        },
+        {
+          "id": "c:common.hpp@237@F@make_data#I#I#@seed",
+          "name": "seed",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 12,
+          "end_line": 12,
+          "definition": true
+        },
+        {
+          "id": "c:@F@kernel#I#I#",
+          "name": "kernel(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "common.hpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": false
+        },
+        {
+          "id": "c:common.hpp@506@F@kernel#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:common.hpp@523@F@kernel#I#I#@seed",
+          "name": "seed",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:@F@main#I#**C#",
+          "name": "main(int, char **)",
+          "kind": "FUNCTION_DECL",
+          "file": "driver.cpp",
+          "line": 6,
+          "end_line": 18,
+          "definition": true
+        },
+        {
+          "id": "c:driver.cpp@163@F@main#I#**C#@argc",
+          "name": "argc",
+          "kind": "PARM_DECL",
+          "file": "driver.cpp",
+          "line": 6,
+          "end_line": 6,
+          "definition": true
+        },
+        {
+          "id": "c:driver.cpp@173@F@main#I#**C#@argv",
+          "name": "argv",
+          "kind": "PARM_DECL",
+          "file": "driver.cpp",
+          "line": 6,
+          "end_line": 6,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@F@fib#i#",
+          "name": "fib(unsigned int)",
+          "kind": "FUNCTION_DECL",
+          "file": "kernel.cpp",
+          "line": 2,
+          "end_line": 2,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@47@F@fib#i#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "kernel.cpp",
+          "line": 2,
+          "end_line": 2,
+          "definition": true
+        },
+        {
+          "id": "c:@F@kernel#I#I#",
+          "name": "kernel(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "kernel.cpp",
+          "line": 3,
+          "end_line": 5,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@128@F@kernel#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "kernel.cpp",
+          "line": 3,
+          "end_line": 3,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@145@F@kernel#I#I#@seed",
+          "name": "seed",
+          "kind": "PARM_DECL",
+          "file": "kernel.cpp",
+          "line": 3,
+          "end_line": 3,
+          "definition": true
+        }
+      ],
+      "diagnostics": [
+        "<user-home>/cpp-optimize-assistant/.optimizer-jobs/runner-27uj8tr6/tmprv7yakx9/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found",
+        "<user-home>/cpp-optimize-assistant/.optimizer-jobs/runner-27uj8tr6/tmprv7yakx9/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found"
+      ]
+    }
+  },
+  "attempts": [
+    {
+      "number": 1,
+      "status": "accepted",
+      "explanation": "Replacing the recursive fib with a constexpr lookup table removes exponential recursion overhead while preserving exact results for n\u226440. The kernel still returns the same value (fib(min(n,40)) + seed%97) for all inputs, keeping observable behavior unchanged but significantly speeding up each call, especially in the driver loop with many rounds.",
+      "model_call": {
+        "settings": {
+          "model": "openai/gpt-oss-120b",
+          "temperature": 0.2,
+          "top_p": 1,
+          "reasoning_effort": "medium",
+          "max_completion_tokens": 2048,
+          "stream": false
+        },
+        "seconds": 2.8682677909964696,
+        "usage": {
+          "completion_tokens": 1167,
+          "prompt_tokens": 1860,
+          "total_tokens": 3027,
+          "completion_time": 2.411698673,
+          "completion_tokens_details": {
+            "reasoning_tokens": 708
+          },
+          "prompt_time": 0.159366799,
+          "prompt_tokens_details": null,
+          "queue_time": 0.103409988,
+          "total_time": 2.571065472
+        }
+      },
+      "diff": "--- a/kernel.cpp\n+++ b/kernel.cpp\n@@ -1,6 +1,13 @@\n #include \"common.hpp\"\n-static std::uint64_t fib(unsigned n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }\n+static constexpr std::uint64_t fib_table[41] = {\n+    0ull, 1ull, 1ull, 2ull, 3ull, 5ull, 8ull, 13ull, 21ull, 34ull,\n+    55ull, 89ull, 144ull, 233ull, 377ull, 610ull, 987ull, 1597ull,\n+    2584ull, 4181ull, 6765ull, 10946ull, 17711ull, 28657ull, 46368ull,\n+    75025ull, 121393ull, 196418ull, 317811ull, 514229ull, 832040ull,\n+    1346269ull, 2178309ull, 3524578ull, 5702887ull, 9227465ull,\n+    14930352ull, 24157817ull, 39088169ull, 63245986ull, 102334155ull\n+};\n std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {\n-    return fib(std::min(n, 40u)) + seed % 97;\n+    return fib_table[std::min(n, 40u)] + seed % 97;\n }\n \n",
+      "evaluation": {
+        "compiled": true,
+        "executed": true,
+        "correctness": "passed supplied workloads",
+        "accepted": true,
+        "gain": 0.8736857020765055,
+        "lower_confidence_gain": 0.8460961294357562,
+        "reason": "Outputs matched and measured improvement cleared the acceptance threshold",
+        "before": {
+          "nominal": {
+            "median_seconds": 0.02014345896895975,
+            "mad_seconds": 0.0004295830149203539,
+            "samples": [
+              0.018510582973249257,
+              0.021403666934929788,
+              0.020036958041600883,
+              0.02014345896895975,
+              0.021114874980412424,
+              0.019996707909740508,
+              0.020573041983880103
+            ]
+          },
+          "larger": {
+            "median_seconds": 0.031018541078083217,
+            "mad_seconds": 0.0020195411052554846,
+            "samples": [
+              0.02885150001384318,
+              0.028998999972827733,
+              0.03326291695702821,
+              0.03376458398997784,
+              0.031018541078083217,
+              0.032978625036776066,
+              0.03020787495188415
+            ]
+          }
+        },
+        "after": {
+          "nominal": {
+            "median_seconds": 0.003594583016820252,
+            "mad_seconds": 0.00017808307893574238,
+            "samples": [
+              0.0037380409194156528,
+              0.004812209052033722,
+              0.003594583016820252,
+              0.0022007919615134597,
+              0.003689292003400624,
+              0.0034164999378845096,
+              0.002224082942120731
+            ]
+          },
+          "larger": {
+            "median_seconds": 0.003551166970282793,
+            "mad_seconds": 0.00027612491976469755,
+            "samples": [
+              0.003551166970282793,
+              0.0033842080738395452,
+              0.004001834080554545,
+              0.0039108749479055405,
+              0.0022103339433670044,
+              0.0032750420505180955,
+              0.0037532499991357327
+            ]
+          }
+        }
+      },
+      "reason": "Outputs matched and measured improvement cleared the acceptance threshold"
+    }
+  ],
+  "accepted_count": 1,
+  "warnings": [
+    "Native mode runs trusted code with your local permissions; it is not a sandbox.",
+    "Correctness is checked only on supplied workloads; this is not a proof for all inputs."
+  ],
+  "options": {
+    "mode": "optimize",
+    "build": "simple",
+    "standard": "c++17",
+    "sources": [
+      "driver.cpp",
+      "kernel.cpp"
+    ],
+    "include_dirs": [],
+    "cmake_target": "",
+    "executable": "",
+    "working_dir": ".",
+    "cases": [
+      {
+        "benchmark": false,
+        "name": "check-0-19",
+        "args": [
+          "0",
+          "1",
+          "19"
+        ],
+        "stdin": "",
+        "expected_stdout": "0\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": false,
+        "name": "check-1-47",
+        "args": [
+          "1",
+          "1",
+          "47"
+        ],
+        "stdin": "",
+        "expected_stdout": "48\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": false,
+        "name": "check-8-19",
+        "args": [
+          "8",
+          "1",
+          "19"
+        ],
+        "stdin": "",
+        "expected_stdout": "40\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": false,
+        "name": "check-17-47",
+        "args": [
+          "17",
+          "1",
+          "47"
+        ],
+        "stdin": "",
+        "expected_stdout": "1644\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": true,
+        "name": "nominal",
+        "args": [
+          "28",
+          "30",
+          "1729"
+        ],
+        "stdin": "",
+        "expected_stdout": null,
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": true,
+        "name": "larger",
+        "args": [
+          "29",
+          "30",
+          "42"
+        ],
+        "stdin": "",
+        "expected_stdout": null,
+        "expected_stderr": null,
+        "output_files": []
+      }
+    ],
+    "attempts": 1,
+    "repeats": 7,
+    "min_improvement": 0.03,
+    "run_timeout": 10,
+    "profile": false,
+    "editable_files": [
+      "kernel.cpp"
+    ]
+  },
+  "original_sha256": "4e48d333082f6c51bf72473cc3f5a5eaf0557fc64fe7ac39096d033b04dd2cbc",
+  "final": {
+    "compiled": true,
+    "executed": true,
+    "environment": {
+      "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+      "system": "macOS-15.7.3-arm64-arm-64bit",
+      "architecture": "arm64",
+      "optimization": "-O3",
+      "timer": "time.perf_counter",
+      "omp_num_threads": 1
+    },
+    "references": {
+      "check-0-19": {
+        "stdout": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-1-47": {
+        "stdout": "654ee9da442fa353f59f11beb688fc7f76c8de62a6c18b2a181fdde2a27cc3ef",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-8-19": {
+        "stdout": "673650f936cb3b0a2f93ce09d81be10748b1b203c19e8176b4eefc1964a0cf3a",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-17-47": {
+        "stdout": "d1cbb3324f30dee3e1847dc48d5be58873b59b9c4711bac30ca01b6fc1a1a162",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "nominal": {
+        "stdout": "39d7a96a99538ec5300272dc7b7bf6dcb8af418f3b7b40ef004ffbef3cd72f2b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "larger": {
+        "stdout": "3d3ba8cd8a1b09c6ece59dac8a9967f68687179eea886d751cca88fd0eb59a1f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      }
+    },
+    "benchmarks": {
+      "nominal": {
+        "median_seconds": 0.0024109999649226665,
+        "mad_seconds": 0.0003469169605523348,
+        "samples": [
+          0.0036523749586194754,
+          0.0047481670044362545,
+          0.0023575000232085586,
+          0.0024109999649226665,
+          0.0020640830043703318,
+          0.0029958749655634165,
+          0.0020852499874308705
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.002176332985982299,
+        "mad_seconds": 0.0001377919688820839,
+        "samples": [
+          0.0033092090161517262,
+          0.002176332985982299,
+          0.0032592079369351268,
+          0.002160665928386152,
+          0.002066665911115706,
+          0.0023739170283079147,
+          0.002038541017100215
+        ]
+      }
+    },
+    "profile": {
+      "available": false,
+      "reason": "Profiling disabled"
+    },
+    "analysis": {
+      "available": true,
+      "symbols": [
+        {
+          "id": "c:@F@make_data#I#I#",
+          "name": "make_data(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "common.hpp",
+          "line": 12,
+          "end_line": 20,
+          "definition": true
+        },
+        {
+          "id": "c:common.hpp@220@F@make_data#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 12,
+          "end_line": 12,
+          "definition": true
+        },
+        {
+          "id": "c:common.hpp@237@F@make_data#I#I#@seed",
+          "name": "seed",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 12,
+          "end_line": 12,
+          "definition": true
+        },
+        {
+          "id": "c:@F@kernel#I#I#",
+          "name": "kernel(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "common.hpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": false
+        },
+        {
+          "id": "c:common.hpp@506@F@kernel#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:common.hpp@523@F@kernel#I#I#@seed",
+          "name": "seed",
+          "kind": "PARM_DECL",
+          "file": "common.hpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:@F@main#I#**C#",
+          "name": "main(int, char **)",
+          "kind": "FUNCTION_DECL",
+          "file": "driver.cpp",
+          "line": 6,
+          "end_line": 18,
+          "definition": true
+        },
+        {
+          "id": "c:driver.cpp@163@F@main#I#**C#@argc",
+          "name": "argc",
+          "kind": "PARM_DECL",
+          "file": "driver.cpp",
+          "line": 6,
+          "end_line": 6,
+          "definition": true
+        },
+        {
+          "id": "c:driver.cpp@173@F@main#I#**C#@argv",
+          "name": "argv",
+          "kind": "PARM_DECL",
+          "file": "driver.cpp",
+          "line": 6,
+          "end_line": 6,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@fib_table",
+          "name": "fib_table",
+          "kind": "VAR_DECL",
+          "file": "kernel.cpp",
+          "line": 2,
+          "end_line": 2,
+          "definition": true
+        },
+        {
+          "id": "c:@F@kernel#I#I#",
+          "name": "kernel(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "kernel.cpp",
+          "line": 10,
+          "end_line": 12,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@502@F@kernel#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "kernel.cpp",
+          "line": 10,
+          "end_line": 10,
+          "definition": true
+        },
+        {
+          "id": "c:kernel.cpp@519@F@kernel#I#I#@seed",
+          "name": "seed",
+          "kind": "PARM_DECL",
+          "file": "kernel.cpp",
+          "line": 10,
+          "end_line": 10,
+          "definition": true
+        }
+      ],
+      "diagnostics": [
+        "<user-home>/cpp-optimize-assistant/.optimizer-jobs/runner-3rtce1la/tmpuhj0138i/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found",
+        "<user-home>/cpp-optimize-assistant/.optimizer-jobs/runner-3rtce1la/tmpuhj0138i/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found"
+      ]
+    }
+  },
+  "final_comparison": {
+    "compiled": true,
+    "executed": true,
+    "correctness": "passed supplied workloads",
+    "accepted": true,
+    "gain": 0.861766916907985,
+    "lower_confidence_gain": 0.8605738669287141,
+    "reason": "Outputs matched and measured improvement cleared the acceptance threshold",
+    "before": {
+      "nominal": {
+        "median_seconds": 0.02064758399501443,
+        "mad_seconds": 0.0006288319127634168,
+        "samples": [
+          0.021285541937686503,
+          0.01986787503119558,
+          0.02102012501563877,
+          0.02064758399501443,
+          0.019997499999590218,
+          0.021276415907777846,
+          0.02021095808595419
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.03122945805080235,
+        "mad_seconds": 0.0002872080076485872,
+        "samples": [
+          0.03292895806953311,
+          0.03122945805080235,
+          0.03040366608183831,
+          0.031064291018992662,
+          0.03254141693469137,
+          0.030942250043153763,
+          0.03138908406253904
+        ]
+      }
+    },
+    "after": {
+      "nominal": {
+        "median_seconds": 0.0036820420064032078,
+        "mad_seconds": 9.579199831932783e-05,
+        "samples": [
+          0.003749834024347365,
+          0.0034739170223474503,
+          0.0036697499454021454,
+          0.0037778340047225356,
+          0.0036820420064032078,
+          0.0035287908976897597,
+          0.004915041965432465
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.0034831659868359566,
+        "mad_seconds": 0.00022537505719810724,
+        "samples": [
+          0.0038090840680524707,
+          0.0035795830190181732,
+          0.0022156659979373217,
+          0.0033704579109326005,
+          0.0034831659868359566,
+          0.003708541044034064,
+          0.0023295419523492455
+        ]
+      }
+    }
+  },
+  "outcome": "improved",
+  "diff": "--- a/kernel.cpp\n+++ b/kernel.cpp\n@@ -1,6 +1,13 @@\n #include \"common.hpp\"\n-static std::uint64_t fib(unsigned n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }\n+static constexpr std::uint64_t fib_table[41] = {\n+    0ull, 1ull, 1ull, 2ull, 3ull, 5ull, 8ull, 13ull, 21ull, 34ull,\n+    55ull, 89ull, 144ull, 233ull, 377ull, 610ull, 987ull, 1597ull,\n+    2584ull, 4181ull, 6765ull, 10946ull, 17711ull, 28657ull, 46368ull,\n+    75025ull, 121393ull, 196418ull, 317811ull, 514229ull, 832040ull,\n+    1346269ull, 2178309ull, 3524578ull, 5702887ull, 9227465ull,\n+    14930352ull, 24157817ull, 39088169ull, 63245986ull, 102334155ull\n+};\n std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {\n-    return fib(std::min(n, 40u)) + seed % 97;\n+    return fib_table[std::min(n, 40u)] + seed % 97;\n }\n \n",
+  "result_sha256": "0269e2250d3b1bf6bc9ecafa4e597d03224fc768da42edfa40ed036a87cf9786"
+}

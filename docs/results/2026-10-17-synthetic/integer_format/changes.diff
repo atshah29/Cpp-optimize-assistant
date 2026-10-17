@@ -1,0 +1,20 @@
+--- a/kernel.cpp
++++ b/kernel.cpp
+@@ -3,9 +3,14 @@
+     auto values = make_data(n, seed);
+     std::uint64_t result = 0;
+     for (auto value : values) {
+-        std::ostringstream out;
+-        out << value;
+-        for (auto ch : out.str()) result += static_cast<unsigned char>(ch);
++        if (value == 0) {
++            result += static_cast<unsigned char>('0');
++        } else {
++            while (value > 0) {
++                result += static_cast<unsigned char>('0' + (value % 10));
++                value /= 10;
++            }
++        }
+     }
+     return result;
+ }

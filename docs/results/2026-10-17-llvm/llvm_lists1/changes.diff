@@ -1,0 +1,25 @@
+--- a/lists1.cpp
++++ b/lists1.cpp
+@@ -18,14 +18,14 @@
+ 
+ using namespace std;
+ 
+-void list_print_n (list<int> L, int n) {
+-    int c, lastc = n - 1;
+-    list<int>::iterator i;
+-    for (c = 0, i = L.begin(); i != L.end() && c < n; ++i, ++c) {
+-	cout << (*i);
+-	if (c < lastc) cout << " ";
+-    }
+-    cout << endl;
++void list_print_n (const list<int>& L, int n) {
++	int c, lastc = n - 1;
++	list<int>::const_iterator i;
++	for (c = 0, i = L.begin(); i != L.end() && c < n; ++i, ++c) {
++		cout << (*i);
++		if (c < lastc) cout << " ";
++	}
++	cout << endl;
+ }
+ 
+ int main(int argc, char* argv[]) {

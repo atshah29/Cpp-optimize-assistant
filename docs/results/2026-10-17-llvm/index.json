@@ -1,0 +1,47 @@
+{
+  "llvm_ary3": {
+    "status": "completed",
+    "outcome": "unchanged",
+    "baseline_seconds": 0.06702983297873288,
+    "result_seconds": 0.06702983297873288,
+    "reduction": 0.0,
+    "speedup": 1.0,
+    "report": "llvm_ary3/report.json"
+  },
+  "llvm_matrix": {
+    "status": "completed",
+    "outcome": "improved",
+    "baseline_seconds": 0.043378249974921346,
+    "result_seconds": 0.038619040977209806,
+    "reduction": 0.10971417704640052,
+    "speedup": 1.1232347794581456,
+    "report": "llvm_matrix/report.json"
+  },
+  "llvm_lists1": {
+    "status": "completed",
+    "outcome": "improved",
+    "baseline_seconds": 0.02353358408436179,
+    "result_seconds": 0.016933375038206577,
+    "reduction": 0.28045915243913455,
+    "speedup": 1.3897751648010652,
+    "report": "llvm_lists1/report.json"
+  },
+  "llvm_sieve": {
+    "status": "completed",
+    "outcome": "improved",
+    "baseline_seconds": 0.07609679095912725,
+    "result_seconds": 0.023446332896128297,
+    "reduction": 0.6918880204985033,
+    "speedup": 3.2455732543016627,
+    "report": "llvm_sieve/report.json"
+  },
+  "llvm_heapsort": {
+    "status": "completed",
+    "outcome": "unchanged",
+    "baseline_seconds": 0.1635140829021111,
+    "result_seconds": 0.1635140829021111,
+    "reduction": 0.0,
+    "speedup": 1.0,
+    "report": "llvm_heapsort/report.json"
+  }
+}

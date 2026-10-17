@@ -1,0 +1,70 @@
+{
+  "revision": "95569a773206d4ea96522bec400817478efa1511",
+  "repository": "https://github.com/llvm/llvm-test-suite",
+  "benchmark": {
+    "name": "lists1",
+    "category": "linked lists",
+    "source": "lists1.cpp",
+    "reference": "lists1.reference_output.small",
+    "args": [
+      "100000"
+    ],
+    "alternate_args": [
+      "150000"
+    ]
+  },
+  "files": {
+    "LICENSE.TXT": {
+      "path": "LICENSE.TXT",
+      "sha256": "d110d0b221b92267e6d29a9d0a9b4140b59fed0a1fc3184152b0b20cd9f2df0c"
+    },
+    "README.txt": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/README.txt",
+      "sha256": "1908c7d56a745d85d8989a255ce08c916050f36ae15a2ec7ba210c8e38b54e82"
+    },
+    "CMakeLists.txt": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/CMakeLists.txt",
+      "sha256": "264d5885736ec1d213c428e4779a1e08cd5c6caf17c00915d2e8d965ada595e8"
+    },
+    "ary3.cpp": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/ary3.cpp",
+      "sha256": "d1a9d2ff735d4f29933a908402468bb5ad0d08b8ab342b1b05d748561302b2a5"
+    },
+    "matrix.cpp": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/matrix.cpp",
+      "sha256": "cfc58b677d06d6a655c38c78e373d9b481563a05ef8cf909b056ad85f1aae897"
+    },
+    "lists1.cpp": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/lists1.cpp",
+      "sha256": "27f2dd087a6b684d2a491a87d2413754ab4df5446cc21080331b3508ecaaca1f"
+    },
+    "sieve.cpp": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/sieve.cpp",
+      "sha256": "a3ea36d8ef5e921b97215b043a23d08102aa8df0a69f5a35a25cf0da5409d682"
+    },
+    "heapsort.cpp": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/heapsort.cpp",
+      "sha256": "f032b9e490b089f7dcb2586c836b883dafc0d27671859cdb6cfcf792f1c6c17d"
+    },
+    "ary3.reference_output.small": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/ary3.reference_output.small",
+      "sha256": "78f7b168eefb05b2feb3f2240c1ab8393d6a34f80dfd1a21bbc4f61cf4cc859d"
+    },
+    "matrix.reference_output": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/matrix.reference_output",
+      "sha256": "cebe253fb4d32ebb4eb0731f8322cd0e35b574cfc5b8764821319dbce486314c"
+    },
+    "lists1.reference_output.small": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/lists1.reference_output.small",
+      "sha256": "c9aeca28ecc0a0e35b582fd08c8092a206164074ed87a918f7cb6a078461268a"
+    },
+    "sieve.reference_output": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/sieve.reference_output",
+      "sha256": "6281cafedbeb7329cfed68a558075f12fa5ee26ee31c7d6082d6b89754e6a5da"
+    },
+    "heapsort.reference_output": {
+      "path": "SingleSource/Benchmarks/Shootout-C++/heapsort.reference_output",
+      "sha256": "2ee8015e337ee184c233649e4ac42ed1e72bb6b6011b45853f06566094e256dd"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+#include "common.hpp"
+std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {
+    auto values = make_data(n, seed);
+    // Build prefix sums for O(1) range queries
+    std::vector<std::uint64_t> prefix(n + 1, 0);
+    for (std::uint32_t i = 0; i < n; ++i) {
+        prefix[i + 1] = prefix[i] + values[i];
+    }
+    std::uint64_t result = 0;
+    for (unsigned q = 0; q < 1000; ++q) {
+        unsigned a = (std::uint64_t(seed) + q * 17u) % n;
+        unsigned b = (std::uint64_t(seed) + q * 31u) % n;
+        if (a > b) std::swap(a, b);
+        result += prefix[b + 1] - prefix[a];
+    }
+    return result;
+}
+

@@ -1,0 +1,445 @@
+{
+  "mode": "optimize",
+  "runner": "native",
+  "baseline": {
+    "compiled": true,
+    "executed": true,
+    "environment": {
+      "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+      "system": "macOS-15.7.3-arm64-arm-64bit",
+      "architecture": "arm64",
+      "optimization": "-O3",
+      "timer": "time.perf_counter",
+      "omp_num_threads": 1
+    },
+    "references": {
+      "check-0-19": {
+        "stdout": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-1-47": {
+        "stdout": "180aafd8f996f73ca2bc22a269043e5fdae9c3e1725e57995f8622582adabf9d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-8-19": {
+        "stdout": "961f30c5556b00d1ef1220d5e92de5c42b4b69dca2f1f731ee0a447faf4b28cc",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-17-47": {
+        "stdout": "ed4b9ddcadef725437bd53687c973c9f447f5c69ee6d9382df522febc1d8b4df",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "nominal": {
+        "stdout": "22f9b5efbf9bcd6dfe1f1dafad4af7de0f4aa019e77be0e93d652027b88bc1e8",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "larger": {
+        "stdout": "8471fcbffae572ada8c40a7bcdc095fc0d187aa83968ae85651809ce77372f0f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      }
+    },
+    "benchmarks": {
+      "nominal": {
+        "median_seconds": 0.039586749975569546,
+        "mad_seconds": 4.295795224606991e-05,
+        "samples": [
+          0.03958604205399752,
+          0.039586749975569546,
+          0.039629707927815616,
+          0.039577333023771644,
+          0.039438792038708925,
+          0.03994470799807459,
+          0.040582333924248815
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.06069075001869351,
+        "mad_seconds": 0.0022163750836625695,
+        "samples": [
+          0.08334262506105006,
+          0.08541033300571144,
+          0.06287758401595056,
+          0.06069075001869351,
+          0.06016124994494021,
+          0.05847437493503094,
+          0.05710312502924353
+        ]
+      }
+    },
+    "profile": {
+      "available": false,
+      "reason": "Profiling disabled"
+    },
+    "analysis": {
+      "available": true,
+      "symbols": [],
+      "diagnostics": [
+        "/private/var/folders/m8/h9brsbyd7nbcd9y0y7lzldrr0000gn/T/vscode-agent-codex-sandbox-v1luyq/tmpre7_ldg9/tmpzb705z0d/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found",
+        "/private/var/folders/m8/h9brsbyd7nbcd9y0y7lzldrr0000gn/T/vscode-agent-codex-sandbox-v1luyq/tmpre7_ldg9/tmpzb705z0d/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found"
+      ]
+    }
+  },
+  "attempts": [
+    {
+      "number": 1,
+      "status": "accepted",
+      "explanation": "Replace std::map with std::unordered_map and generate the histogram while producing the pseudo\u2011random values, eliminating the temporary vector and O(log\u202fn) map inserts. This reduces memory allocations and improves average\u2011case insertion speed, preserving the exact deterministic result because the same seed progression and value computation are used. The observable checksum remains unchanged.",
+      "model_call": {
+        "settings": {
+          "model": "openai/gpt-oss-120b",
+          "temperature": 0.2,
+          "top_p": 1,
+          "reasoning_effort": "medium",
+          "max_completion_tokens": 2048,
+          "stream": false
+        },
+        "seconds": 3.1657865829765797,
+        "usage": {
+          "completion_tokens": 1286,
+          "prompt_tokens": 1216,
+          "total_tokens": 2502,
+          "completion_time": 2.690195047,
+          "completion_tokens_details": {
+            "reasoning_tokens": 877
+          },
+          "prompt_time": 0.050822527,
+          "prompt_tokens_details": null,
+          "queue_time": 0.248443584,
+          "total_time": 2.741017574
+        }
+      },
+      "diff": "--- a/kernel.cpp\n+++ b/kernel.cpp\n@@ -1,8 +1,13 @@\n #include \"common.hpp\"\n+#include <unordered_map>\n std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {\n-    auto values = make_data(n, seed);\n-    std::map<std::uint32_t, std::uint64_t> histogram;\n-    for (auto value : values) histogram[value]++;\n+    std::unordered_map<std::uint32_t, std::uint64_t> histogram;\n+    histogram.reserve(n);\n+    for (std::uint32_t i = 0; i < n; ++i) {\n+        seed = seed * 1664525u + 1013904223u;\n+        std::uint32_t value = (seed >> 16) % 1000;\n+        histogram[value]++;\n+    }\n     std::uint64_t result = 0;\n     for (const auto& item : histogram) result += (item.first + 1) * item.second * item.second;\n     return result;\n",
+      "evaluation": {
+        "compiled": true,
+        "executed": true,
+        "correctness": "passed supplied workloads",
+        "accepted": true,
+        "gain": 0.863968889198906,
+        "lower_confidence_gain": 0.8632852532190851,
+        "reason": "Outputs matched and measured improvement cleared the acceptance threshold",
+        "before": {
+          "nominal": {
+            "median_seconds": 0.03959166700951755,
+            "mad_seconds": 0.00012479093857109547,
+            "samples": [
+              0.03871945803985,
+              0.03959166700951755,
+              0.039716457948088646,
+              0.039406833006069064,
+              0.03965049993712455,
+              0.0395474589895457,
+              0.03978470794390887
+            ]
+          },
+          "larger": {
+            "median_seconds": 0.05770095798652619,
+            "mad_seconds": 0.0010362500324845314,
+            "samples": [
+              0.05885791697073728,
+              0.05669050000142306,
+              0.05707479105331004,
+              0.05666470795404166,
+              0.05770095798652619,
+              0.05905712489038706,
+              0.0864267919678241
+            ]
+          }
+        },
+        "after": {
+          "nominal": {
+            "median_seconds": 0.0060135830426588655,
+            "mad_seconds": 9.295891504734755e-05,
+            "samples": [
+              0.005969166057184339,
+              0.005950750084593892,
+              0.0060135830426588655,
+              0.0057471670443192124,
+              0.006106541957706213,
+              0.0062775410478934646,
+              0.006120124948211014
+            ]
+          },
+          "larger": {
+            "median_seconds": 0.007219208055175841,
+            "mad_seconds": 6.412493530660868e-05,
+            "samples": [
+              0.0072833329904824495,
+              0.0070397499948740005,
+              0.007219208055175841,
+              0.007227875059470534,
+              0.0071997500490397215,
+              0.007135750027373433,
+              0.01293745799921453
+            ]
+          }
+        }
+      },
+      "reason": "Outputs matched and measured improvement cleared the acceptance threshold"
+    }
+  ],
+  "accepted_count": 1,
+  "warnings": [
+    "Native mode runs trusted code with your local permissions; it is not a sandbox.",
+    "Correctness is checked only on supplied workloads; this is not a proof for all inputs."
+  ],
+  "options": {
+    "mode": "optimize",
+    "build": "simple",
+    "standard": "c++17",
+    "sources": [
+      "driver.cpp",
+      "kernel.cpp"
+    ],
+    "include_dirs": [],
+    "cmake_target": "",
+    "executable": "",
+    "working_dir": ".",
+    "cases": [
+      {
+        "benchmark": false,
+        "name": "check-0-19",
+        "args": [
+          "0",
+          "1",
+          "19"
+        ],
+        "stdin": "",
+        "expected_stdout": "0\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": false,
+        "name": "check-1-47",
+        "args": [
+          "1",
+          "1",
+          "47"
+        ],
+        "stdin": "",
+        "expected_stdout": "665\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": false,
+        "name": "check-8-19",
+        "args": [
+          "8",
+          "1",
+          "19"
+        ],
+        "stdin": "",
+        "expected_stdout": "3289\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": false,
+        "name": "check-17-47",
+        "args": [
+          "17",
+          "1",
+          "47"
+        ],
+        "stdin": "",
+        "expected_stdout": "8592\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": true,
+        "name": "nominal",
+        "args": [
+          "100000",
+          "12",
+          "1729"
+        ],
+        "stdin": "",
+        "expected_stdout": null,
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": true,
+        "name": "larger",
+        "args": [
+          "150000",
+          "12",
+          "42"
+        ],
+        "stdin": "",
+        "expected_stdout": null,
+        "expected_stderr": null,
+        "output_files": []
+      }
+    ],
+    "attempts": 1,
+    "repeats": 7,
+    "min_improvement": 0.03,
+    "run_timeout": 10,
+    "profile": false,
+    "editable_files": [
+      "kernel.cpp"
+    ]
+  },
+  "original_sha256": "1b7ad84d34ff74b751695ea3b2b266d3315b9b377d02fa7d20ece1ebddea5407",
+  "final": {
+    "compiled": true,
+    "executed": true,
+    "environment": {
+      "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+      "system": "macOS-15.7.3-arm64-arm-64bit",
+      "architecture": "arm64",
+      "optimization": "-O3",
+      "timer": "time.perf_counter",
+      "omp_num_threads": 1
+    },
+    "references": {
+      "check-0-19": {
+        "stdout": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-1-47": {
+        "stdout": "180aafd8f996f73ca2bc22a269043e5fdae9c3e1725e57995f8622582adabf9d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-8-19": {
+        "stdout": "961f30c5556b00d1ef1220d5e92de5c42b4b69dca2f1f731ee0a447faf4b28cc",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "check-17-47": {
+        "stdout": "ed4b9ddcadef725437bd53687c973c9f447f5c69ee6d9382df522febc1d8b4df",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "nominal": {
+        "stdout": "22f9b5efbf9bcd6dfe1f1dafad4af7de0f4aa019e77be0e93d652027b88bc1e8",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "larger": {
+        "stdout": "8471fcbffae572ada8c40a7bcdc095fc0d187aa83968ae85651809ce77372f0f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      }
+    },
+    "benchmarks": {
+      "nominal": {
+        "median_seconds": 0.005907624959945679,
+        "mad_seconds": 5.949998740106821e-05,
+        "samples": [
+          0.005890041938982904,
+          0.005967124947346747,
+          0.006133333081379533,
+          0.005901709082536399,
+          0.006344916997477412,
+          0.005831292015500367,
+          0.005907624959945679
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.007207708084024489,
+        "mad_seconds": 3.7000165320932865e-05,
+        "samples": [
+          0.007170707918703556,
+          0.007093750056810677,
+          0.00737470795866102,
+          0.007207708084024489,
+          0.00727208296302706,
+          0.0072094169445335865,
+          0.0071735839592292905
+        ]
+      }
+    },
+    "profile": {
+      "available": false,
+      "reason": "Profiling disabled"
+    },
+    "analysis": {
+      "available": true,
+      "symbols": [],
+      "diagnostics": [
+        "/private/var/folders/m8/h9brsbyd7nbcd9y0y7lzldrr0000gn/T/vscode-agent-codex-sandbox-v1luyq/tmp3zzjl0k6/tmpwhv0ov1e/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found",
+        "/private/var/folders/m8/h9brsbyd7nbcd9y0y7lzldrr0000gn/T/vscode-agent-codex-sandbox-v1luyq/tmp3zzjl0k6/tmpwhv0ov1e/baseline/common.hpp:2:10: fatal error: 'algorithm' file not found"
+      ]
+    }
+  },
+  "final_comparison": {
+    "compiled": true,
+    "executed": true,
+    "correctness": "passed supplied workloads",
+    "accepted": true,
+    "gain": 0.8619125756083733,
+    "lower_confidence_gain": 0.8511908222409871,
+    "reason": "Outputs matched and measured improvement cleared the acceptance threshold",
+    "before": {
+      "nominal": {
+        "median_seconds": 0.039394917082972825,
+        "mad_seconds": 0.0006474580150097609,
+        "samples": [
+          0.03940879099536687,
+          0.03931220807135105,
+          0.04091783391777426,
+          0.039394917082972825,
+          0.03871491702739149,
+          0.04187362501397729,
+          0.038747459067963064
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.05727154202759266,
+        "mad_seconds": 0.00016687496099621058,
+        "samples": [
+          0.0575389590812847,
+          0.05710466706659645,
+          0.05729645804967731,
+          0.05706254194956273,
+          0.05727154202759266,
+          0.057234374922700226,
+          0.0574481668882072
+        ]
+      }
+    },
+    "after": {
+      "nominal": {
+        "median_seconds": 0.006059332983568311,
+        "mad_seconds": 0.00013025000225752592,
+        "samples": [
+          0.007326958002522588,
+          0.006059332983568311,
+          0.005993832950480282,
+          0.005929082981310785,
+          0.00611674995161593,
+          0.005829792004078627,
+          0.007255750009790063
+        ]
+      },
+      "larger": {
+        "median_seconds": 0.00719754199963063,
+        "mad_seconds": 3.6000972613692284e-05,
+        "samples": [
+          0.00719754199963063,
+          0.007254624972119927,
+          0.007161541027016938,
+          0.007247417001053691,
+          0.0072025409899652,
+          0.007173415971919894,
+          0.007059041992761195
+        ]
+      }
+    }
+  },
+  "outcome": "improved",
+  "diff": "--- a/kernel.cpp\n+++ b/kernel.cpp\n@@ -1,8 +1,13 @@\n #include \"common.hpp\"\n+#include <unordered_map>\n std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {\n-    auto values = make_data(n, seed);\n-    std::map<std::uint32_t, std::uint64_t> histogram;\n-    for (auto value : values) histogram[value]++;\n+    std::unordered_map<std::uint32_t, std::uint64_t> histogram;\n+    histogram.reserve(n);\n+    for (std::uint32_t i = 0; i < n; ++i) {\n+        seed = seed * 1664525u + 1013904223u;\n+        std::uint32_t value = (seed >> 16) % 1000;\n+        histogram[value]++;\n+    }\n     std::uint64_t result = 0;\n     for (const auto& item : histogram) result += (item.first + 1) * item.second * item.second;\n     return result;\n",
+  "result_sha256": "1bcd04fa7057f689b0799e5d5d907726ba92cf3ff33617036d12b7eee5fee7f1"
+}

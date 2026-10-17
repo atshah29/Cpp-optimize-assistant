@@ -1,0 +1,23 @@
+--- a/kernel.cpp
++++ b/kernel.cpp
+@@ -1,12 +1,15 @@
+ #include "common.hpp"
++#include <numeric>
+ std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {
+-    auto a = make_data(n, seed), b = make_data(n, seed + 17);
+     std::uint64_t result = 0;
++    std::uint32_t s1 = seed;
++    std::uint32_t s2 = seed + 17;
+     for (unsigned i = 0; i < n; ++i) {
+-        unsigned x = a[i] + 1, y = b[i] + 1;
+-        while (x != y) { if (x > y) x -= y; else y -= x; }
+-        result += x;
++        s1 = s1 * 1664525u + 1013904223u;
++        unsigned x = ((s1 >> 16) % 1000) + 1;
++        s2 = s2 * 1664525u + 1013904223u;
++        unsigned y = ((s2 >> 16) % 1000) + 1;
++        result += std::gcd(x, y);
+     }
+     return result;
+ }
+-

@@ -1,0 +1,567 @@
+{
+  "mode": "optimize",
+  "runner": "native",
+  "baseline": {
+    "compiled": true,
+    "executed": true,
+    "environment": {
+      "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+      "system": "macOS-15.7.3-arm64-arm-64bit",
+      "architecture": "arm64",
+      "optimization": "-O3",
+      "timer": "time.perf_counter",
+      "omp_num_threads": 1
+    },
+    "references": {
+      "upstream-reference": {
+        "stdout": "4bcc3fc8302a6d07f4f59dc5fcbcc8b666aa1710db13fb6d42c07801945cbdb5",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "alternate-input": {
+        "stdout": "30f8a0f6a64f4927c9cd5b6f968b6339e122ba7e14ee50bc7a651912cb629731",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      }
+    },
+    "benchmarks": {
+      "upstream-reference": {
+        "median_seconds": 0.011255666962824762,
+        "mad_seconds": 0.0005053749773651361,
+        "samples": [
+          0.011761041940189898,
+          0.011435291031375527,
+          0.011255666962824762,
+          0.011308916960842907,
+          0.010407332913018763,
+          0.009843082982115448,
+          0.010325332987122238
+        ]
+      },
+      "alternate-input": {
+        "median_seconds": 0.013586583081632853,
+        "mad_seconds": 0.00010099983774125576,
+        "samples": [
+          0.01338641601614654,
+          0.013687582919374108,
+          0.013965416932478547,
+          0.013586583081632853,
+          0.013490875018760562,
+          0.013393000001087785,
+          0.013615124975331128
+        ]
+      }
+    },
+    "profile": {
+      "available": false,
+      "reason": "Profiling disabled"
+    },
+    "analysis": {
+      "available": true,
+      "symbols": [
+        {
+          "id": "c:@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#",
+          "name": "iota(_ForwardIterator, _ForwardIterator, _Tp)",
+          "kind": "FUNCTION_TEMPLATE",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 17,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@177",
+          "name": "_ForwardIterator",
+          "kind": "TEMPLATE_TYPE_PARAMETER",
+          "file": "lists1.cpp",
+          "line": 11,
+          "end_line": 11,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@201",
+          "name": "_Tp",
+          "kind": "TEMPLATE_TYPE_PARAMETER",
+          "file": "lists1.cpp",
+          "line": 11,
+          "end_line": 11,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@223@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#@__first",
+          "name": "__first",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 13,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@249@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#@__last",
+          "name": "__last",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 13,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@274@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#@__value",
+          "name": "__value",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 13,
+          "definition": true
+        },
+        {
+          "id": "c:@F@list_print_n#I#I#",
+          "name": "list_print_n(int, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "lists1.cpp",
+          "line": 21,
+          "end_line": 29,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@389@F@list_print_n#I#I#@L",
+          "name": "L",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@402@F@list_print_n#I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:@F@main#I#**C#",
+          "name": "main(int, char **)",
+          "kind": "FUNCTION_DECL",
+          "file": "lists1.cpp",
+          "line": 31,
+          "end_line": 87,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@610@F@main#I#**C#@argc",
+          "name": "argc",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 31,
+          "end_line": 31,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@620@F@main#I#**C#@argv",
+          "name": "argv",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 31,
+          "end_line": 31,
+          "definition": true
+        }
+      ],
+      "diagnostics": [
+        "<user-home>/cpp-optimize-assistant/.optimizer-jobs/runner-yljjwnyg/tmp_vly4yp_/baseline/lists1.cpp:5:10: fatal error: 'algorithm' file not found"
+      ]
+    }
+  },
+  "attempts": [
+    {
+      "number": 1,
+      "status": "accepted",
+      "explanation": "Passing the list by value in list_print_n copies the entire list (up to 1,000,000 elements), causing large allocation and copy overhead. Changing the parameter to a const reference eliminates the copy while preserving read\u2011only semantics, reducing runtime and memory usage without affecting observable behavior.",
+      "model_call": {
+        "settings": {
+          "model": "openai/gpt-oss-120b",
+          "temperature": 0.2,
+          "top_p": 1,
+          "reasoning_effort": "medium",
+          "max_completion_tokens": 2048,
+          "stream": false
+        },
+        "seconds": 2.6643646670272574,
+        "usage": {
+          "completion_tokens": 1030,
+          "prompt_tokens": 2130,
+          "total_tokens": 3160,
+          "completion_time": 2.152794954,
+          "completion_tokens_details": {
+            "reasoning_tokens": 736
+          },
+          "prompt_time": 0.108359317,
+          "prompt_tokens_details": null,
+          "queue_time": 0.287345836,
+          "total_time": 2.261154271
+        }
+      },
+      "diff": "--- a/lists1.cpp\n+++ b/lists1.cpp\n@@ -18,14 +18,14 @@\n \n using namespace std;\n \n-void list_print_n (list<int> L, int n) {\n-    int c, lastc = n - 1;\n-    list<int>::iterator i;\n-    for (c = 0, i = L.begin(); i != L.end() && c < n; ++i, ++c) {\n-\tcout << (*i);\n-\tif (c < lastc) cout << \" \";\n-    }\n-    cout << endl;\n+void list_print_n (const list<int>& L, int n) {\n+\tint c, lastc = n - 1;\n+\tlist<int>::const_iterator i;\n+\tfor (c = 0, i = L.begin(); i != L.end() && c < n; ++i, ++c) {\n+\t\tcout << (*i);\n+\t\tif (c < lastc) cout << \" \";\n+\t}\n+\tcout << endl;\n }\n \n int main(int argc, char* argv[]) {\n",
+      "evaluation": {
+        "compiled": true,
+        "executed": true,
+        "correctness": "passed supplied workloads",
+        "accepted": true,
+        "gain": 0.2795645486452626,
+        "lower_confidence_gain": 0.25046798482550864,
+        "reason": "Outputs matched and measured improvement cleared the acceptance threshold",
+        "before": {
+          "upstream-reference": {
+            "median_seconds": 0.010047249961644411,
+            "mad_seconds": 0.0002816249616444111,
+            "samples": [
+              0.012786707957275212,
+              0.012654082966037095,
+              0.010056499973870814,
+              0.010047249961644411,
+              0.009729041950777173,
+              0.009942917036823928,
+              0.009765625
+            ]
+          },
+          "alternate-input": {
+            "median_seconds": 0.014943999936804175,
+            "mad_seconds": 0.0013001669431105256,
+            "samples": [
+              0.016780832898803055,
+              0.014795708004385233,
+              0.01503916596993804,
+              0.017325458000414073,
+              0.014943999936804175,
+              0.01364383299369365,
+              0.013515457976609468
+            ]
+          }
+        },
+        "after": {
+          "upstream-reference": {
+            "median_seconds": 0.007569459034129977,
+            "mad_seconds": 0.0002443749690428376,
+            "samples": [
+              0.01017833303194493,
+              0.008786292048171163,
+              0.007569459034129977,
+              0.007341583026573062,
+              0.0078532500192523,
+              0.00732508406508714,
+              0.007484792033210397
+            ]
+          },
+          "alternate-input": {
+            "median_seconds": 0.010240833042189479,
+            "mad_seconds": 0.00030274910386651754,
+            "samples": [
+              0.0125759580405429,
+              0.009938083938322961,
+              0.010240833042189479,
+              0.011078416020609438,
+              0.009922084049321711,
+              0.010257916990667582,
+              0.009965125005692244
+            ]
+          }
+        }
+      },
+      "reason": "Outputs matched and measured improvement cleared the acceptance threshold"
+    }
+  ],
+  "accepted_count": 1,
+  "warnings": [
+    "Native mode runs trusted code with your local permissions; it is not a sandbox.",
+    "Correctness is checked only on supplied workloads; this is not a proof for all inputs."
+  ],
+  "options": {
+    "mode": "optimize",
+    "build": "simple",
+    "standard": "c++17",
+    "sources": [
+      "lists1.cpp"
+    ],
+    "include_dirs": [],
+    "cmake_target": "",
+    "executable": "",
+    "working_dir": ".",
+    "cases": [
+      {
+        "benchmark": true,
+        "name": "upstream-reference",
+        "args": [
+          "100000"
+        ],
+        "stdin": "",
+        "expected_stdout": "100000 99999\nfalse\ntrue\n1 2 3 4 5 6 7 8 9 10\n499500\n149999 100000\n",
+        "expected_stderr": null,
+        "output_files": []
+      },
+      {
+        "benchmark": true,
+        "name": "alternate-input",
+        "args": [
+          "150000"
+        ],
+        "stdin": "",
+        "expected_stdout": null,
+        "expected_stderr": null,
+        "output_files": []
+      }
+    ],
+    "attempts": 1,
+    "repeats": 7,
+    "min_improvement": 0.03,
+    "run_timeout": 30,
+    "profile": false,
+    "editable_files": [
+      "lists1.cpp"
+    ],
+    "protected_main": {
+      "lists1.cpp": "int main(int argc, char* argv[]) {\n#ifdef SMALL_PROBLEM_SIZE\n#define LENGTH 100000\n#else\n#define LENGTH 1000000\n#endif\n    int N = (argc == 2 ? (atoi(argv[1]) < 1 ? 1 : atoi(argv[1])): LENGTH);\n    list<int>::iterator i;\n\n    // create empty list B\n    list<int> B;\n\n    // create list (A) of integers from 1 through N\n    list<int> A(N);\n    ::iota(A.begin(), A.end(), 1);\n\n    // move each individual item from A to B, in a loop, reversing order\n    while (! A.empty()) {\n        B.push_front(A.front());\n        A.pop_front();\n    }\n    \n    // print first 2 elements of B\n    list_print_n(B, 2);\n\n    // reverse B (can be done in place)\n    B.reverse();\n    // reverse(B.begin(), B.end());\n\n    // is 0 a member of B?\n    cout << ((find(B.begin(), B.end(), 0) == B.end()) ? \"false\" : \"true\") << endl;\n\n    // is N a member of B?\n    cout << ((find(B.begin(), B.end(), N) == B.end()) ? \"false\" : \"true\") << endl;\n\n    // filter values from B to A that are less than N/2, preserving order\n    int mid = N/2;\n    for (i = B.begin(); i != B.end(); ++i) {\n\tif ((*i) < mid) A.push_back(*i);\n    }\n\n    // print first ten items of A\n    list_print_n(A, 10);\n\n    // print sum of items in A that are less than 1000\n    int sum = 0;\n    for (i = A.begin(); i != A.end(); ++i) {\n\tif ((*i) < 1000) sum += (*i);\n    }\n    cout << sum << endl;\n\n    // append B to end of A\n    A.splice(A.end(), B);\n\n    // print length and last element of A\n    cout << A.size() << \" \" << A.back() << endl;\n}\n"
+    }
+  },
+  "original_sha256": "0c818547f6a167729d3605e6f770b1245b638a7be8f8c49c98981628cce2d079",
+  "final": {
+    "compiled": true,
+    "executed": true,
+    "environment": {
+      "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+      "system": "macOS-15.7.3-arm64-arm-64bit",
+      "architecture": "arm64",
+      "optimization": "-O3",
+      "timer": "time.perf_counter",
+      "omp_num_threads": 1
+    },
+    "references": {
+      "upstream-reference": {
+        "stdout": "4bcc3fc8302a6d07f4f59dc5fcbcc8b666aa1710db13fb6d42c07801945cbdb5",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      },
+      "alternate-input": {
+        "stdout": "30f8a0f6a64f4927c9cd5b6f968b6339e122ba7e14ee50bc7a651912cb629731",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {}
+      }
+    },
+    "benchmarks": {
+      "upstream-reference": {
+        "median_seconds": 0.007826708955690265,
+        "mad_seconds": 0.0005525839515030384,
+        "samples": [
+          0.008888292009942234,
+          0.03139641706366092,
+          0.014273416018113494,
+          0.007600083015859127,
+          0.007286416948772967,
+          0.007274125004187226,
+          0.007826708955690265
+        ]
+      },
+      "alternate-input": {
+        "median_seconds": 0.009814250050112605,
+        "mad_seconds": 0.00013112497981637716,
+        "samples": [
+          0.009875459014438093,
+          0.008817167021334171,
+          0.00995587499346584,
+          0.009683125070296228,
+          0.01024625007994473,
+          0.009808709030039608,
+          0.009814250050112605
+        ]
+      }
+    },
+    "profile": {
+      "available": false,
+      "reason": "Profiling disabled"
+    },
+    "analysis": {
+      "available": true,
+      "symbols": [
+        {
+          "id": "c:@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#",
+          "name": "iota(_ForwardIterator, _ForwardIterator, _Tp)",
+          "kind": "FUNCTION_TEMPLATE",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 17,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@177",
+          "name": "_ForwardIterator",
+          "kind": "TEMPLATE_TYPE_PARAMETER",
+          "file": "lists1.cpp",
+          "line": 11,
+          "end_line": 11,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@201",
+          "name": "_Tp",
+          "kind": "TEMPLATE_TYPE_PARAMETER",
+          "file": "lists1.cpp",
+          "line": 11,
+          "end_line": 11,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@223@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#@__first",
+          "name": "__first",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 13,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@249@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#@__last",
+          "name": "__last",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 13,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@274@FT@>2#T#Tiota#t0.0#S0_#t0.1#v#@__value",
+          "name": "__value",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 13,
+          "end_line": 13,
+          "definition": true
+        },
+        {
+          "id": "c:@F@list_print_n#&1I#I#",
+          "name": "list_print_n(const int &, int)",
+          "kind": "FUNCTION_DECL",
+          "file": "lists1.cpp",
+          "line": 21,
+          "end_line": 29,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@389@F@list_print_n#&1I#I#@L",
+          "name": "L",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@409@F@list_print_n#&1I#I#@n",
+          "name": "n",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 21,
+          "end_line": 21,
+          "definition": true
+        },
+        {
+          "id": "c:@F@main#I#**C#",
+          "name": "main(int, char **)",
+          "kind": "FUNCTION_DECL",
+          "file": "lists1.cpp",
+          "line": 31,
+          "end_line": 87,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@610@F@main#I#**C#@argc",
+          "name": "argc",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 31,
+          "end_line": 31,
+          "definition": true
+        },
+        {
+          "id": "c:lists1.cpp@620@F@main#I#**C#@argv",
+          "name": "argv",
+          "kind": "PARM_DECL",
+          "file": "lists1.cpp",
+          "line": 31,
+          "end_line": 31,
+          "definition": true
+        }
+      ],
+      "diagnostics": [
+        "<user-home>/cpp-optimize-assistant/.optimizer-jobs/runner-es3a950g/tmpysd4ebhp/baseline/lists1.cpp:5:10: fatal error: 'algorithm' file not found"
+      ]
+    }
+  },
+  "final_comparison": {
+    "compiled": true,
+    "executed": true,
+    "correctness": "passed supplied workloads",
+    "accepted": true,
+    "gain": 0.31242254584388474,
+    "lower_confidence_gain": 0.3034654530009368,
+    "reason": "Outputs matched and measured improvement cleared the acceptance threshold",
+    "before": {
+      "upstream-reference": {
+        "median_seconds": 0.009972125058993697,
+        "mad_seconds": 0.00039712502621114254,
+        "samples": [
+          0.013920499943196774,
+          0.010991084040142596,
+          0.011035625007934868,
+          0.009575000032782555,
+          0.00969937490299344,
+          0.009972125058993697,
+          0.009707167046144605
+        ]
+      },
+      "alternate-input": {
+        "median_seconds": 0.013561459025368094,
+        "mad_seconds": 0.0002548330230638385,
+        "samples": [
+          0.012343874899670482,
+          0.015941834077239037,
+          0.013561459025368094,
+          0.013816292048431933,
+          0.01361074997112155,
+          0.013413624954409897,
+          0.012216332950629294
+        ]
+      }
+    },
+    "after": {
+      "upstream-reference": {
+        "median_seconds": 0.007228375063277781,
+        "mad_seconds": 0.0012663340894505382,
+        "samples": [
+          0.00858916703145951,
+          0.008859124965965748,
+          0.007197749917395413,
+          0.007228375063277781,
+          0.005962040973827243,
+          0.006047167000360787,
+          0.008672624942846596
+        ]
+      },
+      "alternate-input": {
+        "median_seconds": 0.009704999974928796,
+        "mad_seconds": 0.00023537501692771912,
+        "samples": [
+          0.009469624958001077,
+          0.009900582954287529,
+          0.009704999974928796,
+          0.00861841591540724,
+          0.010090791969560087,
+          0.00964991596993059,
+          0.009965833043679595
+        ]
+      }
+    }
+  },
+  "outcome": "improved",
+  "diff": "--- a/lists1.cpp\n+++ b/lists1.cpp\n@@ -18,14 +18,14 @@\n \n using namespace std;\n \n-void list_print_n (list<int> L, int n) {\n-    int c, lastc = n - 1;\n-    list<int>::iterator i;\n-    for (c = 0, i = L.begin(); i != L.end() && c < n; ++i, ++c) {\n-\tcout << (*i);\n-\tif (c < lastc) cout << \" \";\n-    }\n-    cout << endl;\n+void list_print_n (const list<int>& L, int n) {\n+\tint c, lastc = n - 1;\n+\tlist<int>::const_iterator i;\n+\tfor (c = 0, i = L.begin(); i != L.end() && c < n; ++i, ++c) {\n+\t\tcout << (*i);\n+\t\tif (c < lastc) cout << \" \";\n+\t}\n+\tcout << endl;\n }\n \n int main(int argc, char* argv[]) {\n",
+  "result_sha256": "8f337dbff7ed93d26f27738118e197ee08160e72fd52f3c25e0234e914100dae"
+}

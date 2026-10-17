@@ -1,0 +1,12 @@
+#include "common.hpp"
+std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {
+    const auto values = make_data(n, seed);
+    std::uint64_t result = 0;
+    for (unsigned i = 0; i < 16; ++i) {
+        auto sorted = values;
+        std::sort(sorted.begin(), sorted.end());
+        result += sorted[(std::uint64_t(seed) + i) % n];
+    }
+    return result;
+}
+

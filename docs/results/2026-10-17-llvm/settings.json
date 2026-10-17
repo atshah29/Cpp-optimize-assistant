@@ -1,0 +1,17 @@
+{
+  "mode": "optimize",
+  "runner": "native",
+  "attempts": 1,
+  "repeats": 7,
+  "profile": false,
+  "model": "openai/gpt-oss-120b",
+  "reasoning_effort": "medium",
+  "max_completion_tokens": "2048",
+  "suite_sha256": "534c4938083633458813f9fe7251a8b311d0766cc01b7712897b5e12e254bb61",
+  "suite": "llvm",
+  "workload_policy": "protected-main-v1",
+  "machine": {
+    "system": "Darwin",
+    "machine": "arm64"
+  }
+}

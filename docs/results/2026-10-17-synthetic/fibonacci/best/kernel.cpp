@@ -1,0 +1,13 @@
+#include "common.hpp"
+static constexpr std::uint64_t fib_table[41] = {
+    0ull, 1ull, 1ull, 2ull, 3ull, 5ull, 8ull, 13ull, 21ull, 34ull,
+    55ull, 89ull, 144ull, 233ull, 377ull, 610ull, 987ull, 1597ull,
+    2584ull, 4181ull, 6765ull, 10946ull, 17711ull, 28657ull, 46368ull,
+    75025ull, 121393ull, 196418ull, 317811ull, 514229ull, 832040ull,
+    1346269ull, 2178309ull, 3524578ull, 5702887ull, 9227465ull,
+    14930352ull, 24157817ull, 39088169ull, 63245986ull, 102334155ull
+};
+std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {
+    return fib_table[std::min(n, 40u)] + seed % 97;
+}
+

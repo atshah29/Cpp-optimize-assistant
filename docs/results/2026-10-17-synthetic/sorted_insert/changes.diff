@@ -1,0 +1,28 @@
+--- a/kernel.cpp
++++ b/kernel.cpp
+@@ -1,8 +1,24 @@
+ #include "common.hpp"
++#include <utility>
+ std::uint64_t kernel(std::uint32_t n, std::uint32_t seed) {
+     auto values = make_data(n, seed);
++    // Pair each value with its original index to preserve the original insertion order for equal keys
++    std::vector<std::pair<std::uint32_t, std::uint32_t>> paired;
++    paired.reserve(n);
++    for (std::uint32_t i = 0; i < n; ++i) {
++        paired.emplace_back(values[i], i);
++    }
++    // Sort by value ascending; for equal values, later original indices come first (reverse order)
++    std::sort(paired.begin(), paired.end(),
++              [](const auto& a, const auto& b) {
++                  if (a.first != b.first) return a.first < b.first;
++                  return a.second > b.second;
++              });
+     std::vector<std::uint32_t> sorted;
+-    for (auto value : values) sorted.insert(std::lower_bound(sorted.begin(), sorted.end(), value), value);
++    sorted.reserve(n);
++    for (auto& p : paired) {
++        sorted.push_back(p.first);
++    }
+     std::uint64_t result = 0;
+     for (unsigned i = 0; i < n; ++i) result += std::uint64_t(i + 1) * sorted[i];
+     return result;
