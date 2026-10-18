@@ -1,6 +1,0 @@
-benchmark,category,status,baseline_seconds,result_seconds,reduction_percent,speedup,report
-llvm_ary3,arrays,completed,0.06702983297873288,0.06702983297873288,0.0,1.0,llvm_ary3/report.json
-llvm_matrix,matrix multiplication,completed,0.043378249974921346,0.038619040977209806,10.971417704640052,1.1232347794581456,llvm_matrix/report.json
-llvm_lists1,linked lists,completed,0.02353358408436179,0.016933375038206577,28.045915243913456,1.3897751648010652,llvm_lists1/report.json
-llvm_sieve,prime sieve,completed,0.07609679095912725,0.023446332896128297,69.18880204985032,3.2455732543016627,llvm_sieve/report.json
-llvm_heapsort,sorting,completed,0.1635140829021111,0.1635140829021111,0.0,1.0,llvm_heapsort/report.json

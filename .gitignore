@@ -216,6 +216,8 @@ testFile.cpp
 .tools/
 .optimizer-jobs/
 benchmark-results/
+# Personal validation notes and exported benchmark snapshots stay local.
+/docs/
 optimizer-result.zip
 optimized_bin
 iter_*.cpp
